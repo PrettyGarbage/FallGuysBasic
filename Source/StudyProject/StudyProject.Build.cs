@@ -13,7 +13,10 @@ public class StudyProject : ModuleRules
 			"Core", "CoreUObject", "Engine", "InputCore",
 			
 			//JSON Module
-			"Json", "JsonUtilities"
+			"Json", "JsonUtilities",
+			
+			//Enhanced Input
+			"EnhancedInput"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
