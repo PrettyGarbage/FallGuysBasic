@@ -18,7 +18,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<class UInputAction> MoveAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TObjectPtr<class UInputAction> LookAction;
+	TObjectPtr<UInputAction> LookAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	TObjectPtr<class UInputAction> ChangeViewAction;
+	TObjectPtr<UInputAction> ChangeViewAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TObjectPtr<UInputAction> JumpAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TObjectPtr<UInputAction> AttackAction;
 };
