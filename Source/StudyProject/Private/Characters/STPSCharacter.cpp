@@ -13,6 +13,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Inputs/SInputConfigData.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Net/UnrealNetwork.h"
 #include "WorldStatic/SLandMine.h"
 
 
@@ -99,17 +100,31 @@ void ASTPSCharacter::Tick(float DeltaSeconds)
 			bIsNowRagdollBlending = false;
 		}
 	}
-}
 
-void ASTPSCharacter::SetMuzzleLocation(const FVector& InLocation)
-{
-	FName EquipmentSocketName = FName(TEXT("EquipmentSocket"));
-	if(GetMesh()->DoesSocketExist(EquipmentSocketName))
+	if(IsValid(GetController()))
 	{
-		UKismetSystemLibrary::PrintString(this, TEXT("SetMuzzleLocation"));
+		PreviousAimPitch = CurrentAimPitch;
+		PreviousAimYaw = CurrentAimYaw;
 
-		
-		
+		FRotator ControlRotation = GetController()->GetControlRotation();
+		CurrentAimPitch = ControlRotation.Pitch;
+		CurrentAimYaw = ControlRotation.Yaw;
+
+		if(PreviousAimPitch != CurrentAimPitch || PreviousAimYaw != CurrentAimYaw)
+		{
+			if(!HasAuthority())//서버 제외하고 업데이트
+			{
+				UpdateAimValue_Server(CurrentAimPitch, CurrentAimYaw);
+			}
+		}
+	}
+
+	if(PreviousForwardInputValue != ForwardInputValue || PreviousRightInputValue != RightInputValue)
+	{
+		if(!HasAuthority())
+		{
+			UpdateInputValue_Server(ForwardInputValue, RightInputValue);
+		}
 	}
 }
 
@@ -138,6 +153,16 @@ float ASTPSCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageE
 	}
 
 	return ActualDamage;
+}
+
+void ASTPSCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ThisClass, ForwardInputValue);
+	DOREPLIFETIME(ThisClass, RightInputValue);
+	DOREPLIFETIME(ThisClass, CurrentAimPitch);
+	DOREPLIFETIME(ThisClass, CurrentAimYaw);
 }
 
 void ASTPSCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -292,6 +317,7 @@ void ASTPSCharacter::SpawnLandMine()
 	SpawnLandMine_Server();
 }
 
+
 void ASTPSCharacter::SpawnLandMine_Server_Implementation()
 {
 	if(IsValid(LandMineClass))
@@ -305,6 +331,18 @@ void ASTPSCharacter::SpawnLandMine_Server_Implementation()
 bool ASTPSCharacter::SpawnLandMine_Server_Validate()
 {
 	return true;
+}
+
+void ASTPSCharacter::UpdateAimValue_Server_Implementation(const float& InPitch, const float& InYaw)
+{
+	CurrentAimPitch = InPitch;
+	CurrentAimYaw = InYaw;
+}
+
+void ASTPSCharacter::UpdateInputValue_Server_Implementation(const float& InForwardInputValue, const float& InRightInputValue)
+{
+	ForwardInputValue = InForwardInputValue;
+	RightInputValue = InRightInputValue;
 }
 
 

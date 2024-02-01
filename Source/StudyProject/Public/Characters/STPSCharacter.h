@@ -30,10 +30,10 @@ public:
 
 	USkeletalMeshComponent* GetWeaponSkeletalMeshComponent() const {return WeaponSkeletalMeshComponent;}
 
-	void SetMuzzleLocation(const FVector& InLocation);
-
 	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	
 protected:
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
@@ -64,6 +64,12 @@ private:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void SpawnLandMine_Server();
 
+	UFUNCTION(Server, Unreliable)
+	void UpdateInputValue_Server(const float& InForwardInputValue, const float& InRightInputValue);
+
+	UFUNCTION(Server, Unreliable)
+	void UpdateAimValue_Server(const float& InPitch, const float& InYaw);
+
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=ASPlayerCharacter, meta = (AllowPrivateAccess))
 	TObjectPtr<USkeletalMeshComponent> WeaponSkeletalMeshComponent;
@@ -74,11 +80,15 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=ASPlayerCharacter, meta = (AllowPrivateAccess))
 	TObjectPtr<class UInputMappingContext> PlayerCharacterInputMappingContext;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=ASPlayerCharacter, meta = (AllowPrivateAccess))
-	float ForwardInputValue = 0.f;
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = ASTPSCharacter, meta = (AllowPrivateAccess))
+	float ForwardInputValue;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=ASPlayerCharacter, meta = (AllowPrivateAccess))
-	float RightInputValue = 0.f;
+	float PreviousForwardInputValue = 0.f;
+
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = ASTPSCharacter, meta = (AllowPrivateAccess))
+	float RightInputValue;
+
+	float PreviousRightInputValue = 0.f;
 
 	float TargetFOV = 70.f;
 
@@ -96,9 +106,15 @@ private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category= ASPlayerCharacter, meta=(AllowPrivateAccess))
 	TObjectPtr<class UAnimMontage> RifleFireAnimMontage;
 
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = ASTPSCharacter, meta = (AllowPrivateAccess))
 	float CurrentAimPitch = 0.f;
 
+	float PreviousAimPitch = 0.f;
+
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = ASTPSCharacter, meta = (AllowPrivateAccess))
 	float CurrentAimYaw = 0.f;
+
+	float PreviousAimYaw = 0.f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category=ASPlayerCharacter, meta = (AllowPrivateAccess))
 	TSubclassOf<class UCameraShakeBase> FireShake;
@@ -115,4 +131,5 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=ASPlayerCharacter, meta = (AllowPrivateAccess))
 	TSubclassOf<class AActor> LandMineClass;
+	
 };
