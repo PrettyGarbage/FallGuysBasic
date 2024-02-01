@@ -15,6 +15,7 @@ class STUDYPROJECT_API USAnimInstance : public UAnimInstance
 	GENERATED_BODY()
 
 	friend class ASRPGCharacter;
+	friend class ASNonPlayerCharacter;
 
 public:
 	USAnimInstance();
@@ -31,6 +32,9 @@ private:
 
 	UFUNCTION()
 	void AnimNotify_CheckCanNextCombo() const;
+
+	UFUNCTION()
+	void OnCharacterDeath();
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "USAnimInstance")
@@ -51,4 +55,7 @@ protected:
 	FOnCheckHitDelegate OnCheckHitDelegate;
 
 	FOnCheckCanNextComboDelegate OnCheckCanNextComboDelegate;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "USAnimInstance", Meta = (AllowPrivateAccess))
+	uint8 bIsDead : 1;
 };

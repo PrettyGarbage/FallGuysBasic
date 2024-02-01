@@ -4,11 +4,28 @@
 
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
+#include "Engine/AssetManager.h"
 #include "SGameInstance.generated.h"
 
-/**
- * 
- */
+USTRUCT(BlueprintType)
+struct FSStatTableRow : public FTableRowBase
+{
+	GENERATED_BODY()
+
+public:
+	FSStatTableRow()
+	{
+	}
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float MaxHP;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float MaxEXP;
+
+};
+
 UCLASS()
 class STUDYPROJECT_API USGameInstance : public UGameInstance
 {
@@ -21,10 +38,14 @@ public:
 
 	virtual void Shutdown() override;
 
-private:
-	UPROPERTY()
-	FString Name;
+	const UDataTable* GetCharacterStatDataTable() {return CharacterStatDataTable;}
 
-	UPROPERTY()
-	TObjectPtr<class USPigeon> SerializedPigeon;
+	FSStatTableRow* GetCharacterStatDataTableRow(int32 InLevel);
+
+public:
+	FStreamableManager StreamableManager = FStreamableManager();
+
+private:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "USGameInstance", Meta = (AllowPrivateAccess))
+	class UDataTable* CharacterStatDataTable;
 };

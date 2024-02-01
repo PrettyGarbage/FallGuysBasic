@@ -15,6 +15,8 @@ class STUDYPROJECT_API ASRPGCharacter : public ASCharacter
 {
 	GENERATED_BODY()
 
+	friend class UAN_CheckHit;
+
 public:
 	ASRPGCharacter();
 
@@ -27,6 +29,8 @@ public:
 	UFUNCTION()
 	void OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 
+	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+	
 protected:
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
@@ -47,6 +51,15 @@ private:
 
 	UFUNCTION()
 	void EndCombo(class UAnimMontage* InAnimMontage, bool bInterrupted);
+
+	UFUNCTION()
+	void OnCurrentLevelChanged(int32 InPrevCurrentLevel, int32 InNewCurrentLevel);
+
+	UFUNCTION()
+	void OnAssetLoaded();
+
+	void Menu(const FInputActionValue& InValue);
+	
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ASRPGCharacter", Meta = (AllowPrivateAccess))
 	TObjectPtr<class USInputConfigData> PlayerCharacterInputConfigData;
@@ -68,5 +81,17 @@ private:
 
 	int32 CurrentComboCount = 0;
 
-	bool bIsAttackKeyPressed = false; 
+	bool bIsAttackKeyPressed = false;
+
+	float AttackRange =200.f;
+
+	float AttackRadius = 50.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "ASRPGCharacter", Meta = (AllowPrivateAccess))
+	TObjectPtr<class UParticleSystemComponent> ParticleSystemComponent;
+
+	FSoftObjectPath CurrentPlayerCharacterMeshPath = FSoftObjectPath();
+
+	TSharedPtr<struct FStreamableHandle> AssetStreamableHandle = nullptr;
+
 };

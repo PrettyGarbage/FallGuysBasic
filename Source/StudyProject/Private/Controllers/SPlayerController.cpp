@@ -3,17 +3,47 @@
 
 #include "Controllers/SPlayerController.h"
 
+#include "Characters/SCharacter.h"
+#include "Components/SStatComponent.h"
+#include "Game/SPlayerState.h"
+#include "UI/SHUD.h"
+#include "Blueprint/UserWidget.h"
+
 ASPlayerController::ASPlayerController()
 {
 	PrimaryActorTick.bCanEverTick = true;
 }
 
+void ASPlayerController::ToggleMenu()
+{
+	UE_LOG(LogTemp, Log, TEXT("Log Message"));
+	if(!bIsMenuOn)
+	{
+		MenuUIInstance->SetVisibility(ESlateVisibility::Visible);
+
+		FInputModeGameAndUI Mode;
+		Mode.SetWidgetToFocus(MenuUIInstance->GetCachedWidget());
+		SetInputMode(Mode);
+
+		bShowMouseCursor = true;
+	}
+	else
+	{
+		MenuUIInstance->SetVisibility(ESlateVisibility::Collapsed);
+
+		FInputModeGameOnly InputModeGameOnly;
+		SetInputMode(InputModeGameOnly);
+
+		bShowMouseCursor = false;
+	}
+
+	bIsMenuOn = !bIsMenuOn;
+	SetPause(bIsMenuOn);
+}
+
 void ASPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
-
-	//InputComponent->BindAxis(TEXT("UpDown"), this, &ThisClass::UpDown);
-	//InputComponent->BindAxis(TEXT("LeftRight"), this, &ThisClass::LeftRight);
 }
 
 void ASPlayerController::BeginPlay()
@@ -22,14 +52,50 @@ void ASPlayerController::BeginPlay()
 
 	const FInputModeGameOnly InputModeGameOnly;
 	SetInputMode(InputModeGameOnly);
-}
 
-void ASPlayerController::LeftRight(float InAxisValue)
-{
-	//UE_LOG(LogTemp, Log, TEXT("LeftRight: %f"), InAxisValue);
-}
+	if(IsValid(HUDWidgetClass))
+	{
+		HUDWidget = CreateWidget<USHUD>(this, HUDWidgetClass);
+		if(IsValid(HUDWidget))
+		{
+			HUDWidget->AddToViewport();
 
-void ASPlayerController::UpDown(float InAxisValue)
-{
-	//UE_LOG(LogTemp, Log, TEXT("UpDown: %f"), InAxisValue);
+			ASPlayerState* SPlayerState = GetPlayerState<ASPlayerState>();
+			if(IsValid(SPlayerState))
+			{
+				HUDWidget->BindPlayerState(SPlayerState);
+			}
+
+			ASCharacter* SCharacter = GetPawn<ASCharacter>();
+			if(IsValid(SCharacter))
+			{
+				USStatComponent* StatComponent = SCharacter->GetStatComponent();
+				if(IsValid(StatComponent))
+				{
+					HUDWidget->BindStatComponent(StatComponent);
+				}
+			}
+		}
+	}
+
+	if(IsValid(MenuUIClass))
+	{
+		MenuUIInstance = CreateWidget<UUserWidget>(this, MenuUIClass);
+		if(IsValid(MenuUIInstance))
+		{
+			MenuUIInstance->AddToViewport(3);
+
+			MenuUIInstance->SetVisibility(ESlateVisibility::Collapsed);
+		}
+	}
+
+	if(IsValid(CrossHairUIClass))
+	{
+		UUserWidget* CrossHairUI = CreateWidget<UUserWidget>(this, CrossHairUIClass);
+		if(IsValid(CrossHairUI))
+		{
+			CrossHairUI->AddToViewport(1);
+			CrossHairUI->SetVisibility(ESlateVisibility::Visible);
+		}
+	}
 }

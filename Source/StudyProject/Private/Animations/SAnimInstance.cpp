@@ -3,6 +3,7 @@
 
 #include "Animations/SAnimInstance.h"
 #include "Characters/SRPGCharacter.h"
+#include "Components/SStatComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 USAnimInstance::USAnimInstance()
@@ -20,6 +21,19 @@ void USAnimInstance::NativeInitializeAnimation()
 	bIsFalling = false;
 
 	bIsCrouching = false;
+
+	bIsDead = false;
+
+	ASCharacter* OwnerCharacter = Cast<ASCharacter>(TryGetPawnOwner());
+	if(IsValid(OwnerCharacter))
+	{
+		USStatComponent* StatComponent = OwnerCharacter->GetStatComponent();
+		if (IsValid(StatComponent)
+			&& !StatComponent->OnOutOfCurrentHPDelegate.IsAlreadyBound(this, &ThisClass::OnCharacterDeath))
+		{
+			StatComponent->OnOutOfCurrentHPDelegate.AddDynamic(this, &ThisClass::OnCharacterDeath);
+		}
+	}
 }
 
 void USAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
@@ -65,4 +79,9 @@ void USAnimInstance::AnimNotify_CheckCanNextCombo() const
 	{
 		OnCheckCanNextComboDelegate.Broadcast();
 	}
+}
+
+void USAnimInstance::OnCharacterDeath()
+{
+	bIsDead = true;
 }

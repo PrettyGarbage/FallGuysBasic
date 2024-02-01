@@ -16,11 +16,30 @@ class STUDYPROJECT_API ASPlayerController : public APlayerController
 public:
 	ASPlayerController();
 
+	class USHUD* GetHUDWidget() const { return HUDWidget; }
+
+	void ToggleMenu();
+	
 protected:
 	virtual void  SetupInputComponent() override;
 	virtual void BeginPlay() override;
 
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category= ASPlayerController, meta=(AllowPrivateAccess))
+	TSubclassOf<class UUserWidget> MenuUIClass;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category= ASPlayerController, meta=(AllowPrivateAccess))
+	TObjectPtr<class UUserWidget> MenuUIInstance;
+
+	bool bIsMenuOn = false;
+
 private:
-	void LeftRight(float InAxisValue);
-	void UpDown(float InAxisValue);
+	UPROPERTY();
+	TObjectPtr<class USHUD> HUDWidget;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "ASPlayerController", Meta = (AllowPrivateAccess));
+	TSubclassOf<class USHUD> HUDWidgetClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = USTPSAnimInstance, meta = (AllowPrivateAccess))
+	TSubclassOf<class UUserWidget> CrossHairUIClass;
 };
