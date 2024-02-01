@@ -134,24 +134,7 @@ float ASTPSCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageE
 {
 	float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 
-	if(!IsValid(GetStatComponent()))
-	{
-		return ActualDamage;
-	}
-
-	if(GetStatComponent()->GetCurrentHP() < KINDA_SMALL_NUMBER)
-	{
-		GetMesh()->SetSimulatePhysics(true);
-	}
-	else
-	{
-		FName PivotBoneName = FName(TEXT("spine_01"));
-		GetMesh()->SetAllBodiesBelowSimulatePhysics(PivotBoneName, true);
-		TargetRagdollBlendWeight = 1.f;
-
-		TakeHitRagdollRestoreTimerDelegate.BindUObject(this, &ThisClass::OnTakeHitRagdollRestoreTimerElapsed);
-		GetWorld()->GetTimerManager().SetTimer(TakeHitRagdollRestoreTimer, TakeHitRagdollRestoreTimerDelegate, 1.f, false);
-	}
+	PlayRagdoll_NetMulticast();
 
 	return ActualDamage;
 }
@@ -221,6 +204,11 @@ void ASTPSCharacter::Attack(const FInputActionValue& InValue)
 
 void ASTPSCharacter::Fire()
 {
+	if(HasAuthority() || GetOwner() != UGameplayStatics::GetPlayerController(this, 0))
+	{
+		return;
+	}
+	
 	APlayerController* PlayerController = Cast<APlayerController>(GetController());
 	if(!IsValid(PlayerController))
 	{
@@ -243,16 +231,17 @@ void ASTPSCharacter::Fire()
 
 	if(bIsCollide)
 	{
-		DrawDebugLine(GetWorld(), MuzzleLocation, HitResult.Location, FColor(255, 255, 255, 64), true, 0.1f, 0U, 0.5f);
 		ASCharacter* HitCharacter = Cast<ASCharacter>(HitResult.GetActor());
 		if(IsValid(HitCharacter))
 		{
 			FDamageEvent DamageEvent;
-			HitCharacter->TakeDamage(10.f, DamageEvent, GetController(), this);
 
 			FString BoneNameString = HitResult.BoneName.ToString();
 			UKismetSystemLibrary::PrintString(this, BoneNameString);
 			DrawDebugSphere(GetWorld(), HitResult.Location, 3.f, 16, FColor::Red, true, 20.f, 0U, 5.f);
+
+			float Damage = BoneNameString.Equals(FString(TEXT("HEAD")), ESearchCase::IgnoreCase) ? 100.f : 10.f;
+			ApplyDamageAndDrawLine_Server(MuzzleLocation, HitResult.Location, HitCharacter, Damage, DamageEvent, GetController(), this);
 		}
 	}
 
@@ -321,6 +310,44 @@ void ASTPSCharacter::OnTakeHitRagdollRestoreTimerElapsed()
 void ASTPSCharacter::SpawnLandMine()
 {
 	SpawnLandMine_Server();
+}
+
+void ASTPSCharacter::PlayRagdoll_NetMulticast_Implementation()
+{
+	if(!IsValid(GetStatComponent()))
+	{
+		return;
+	}
+
+	if(GetStatComponent()->GetCurrentHP() < KINDA_SMALL_NUMBER)
+	{
+		GetMesh()->SetSimulatePhysics(true);
+	}
+	else
+	{
+		FName PivotBoneName = FName(TEXT("spine_01"));
+		GetMesh()->SetAllBodiesBelowSimulatePhysics(PivotBoneName, true);
+		TargetRagdollBlendWeight = 1.f;
+		TakeHitRagdollRestoreTimerDelegate.BindUObject(this, &ThisClass::OnTakeHitRagdollRestoreTimerElapsed);
+		GetWorld()->GetTimerManager().SetTimer(TakeHitRagdollRestoreTimer, TakeHitRagdollRestoreTimerDelegate, 1.f, false);
+	}
+}
+
+void ASTPSCharacter::DrawLine_NetMulticast_Implementation(const FVector& InDrawStart, const FVector& InDrawEnd)
+{
+	DrawDebugLine(GetWorld(), InDrawStart, InDrawEnd, FColor(255,255,255,64), false, 0.1f, 0, .5f);
+}
+
+void ASTPSCharacter::ApplyDamageAndDrawLine_Server_Implementation(const FVector& InDrawStart, const FVector& InDrawEnd,
+                                                                  ACharacter* InHittedCharacter, float InDamage, FDamageEvent const& InDamageEvent, AController* InEventInstigator,
+                                                                  AActor* InDamageCauser)
+{
+	if(IsValid(InHittedCharacter))
+	{
+		InHittedCharacter->TakeDamage(InDamage, InDamageEvent, InEventInstigator, InDamageCauser);
+	}
+
+	DrawLine_NetMulticast(InDrawStart, InDrawEnd);
 }
 
 void ASTPSCharacter::PlayAttackMontage_NetMulticast_Implementation()

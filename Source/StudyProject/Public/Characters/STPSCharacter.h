@@ -76,6 +76,15 @@ private:
 	UFUNCTION(NetMulticast, Unreliable)
 	void PlayAttackMontage_NetMulticast();
 
+	UFUNCTION(Server, Reliable)
+	void ApplyDamageAndDrawLine_Server(const FVector& InDrawStart, const FVector& InDrawEnd, class ACharacter* InHittedCharacter, float InDamage, struct FDamageEvent const& InDamageEvent, AController* InEventInstigator, AActor* InDamageCauser);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void DrawLine_NetMulticast(const FVector& InDrawStart, const FVector& InDrawEnd);
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void PlayRagdoll_NetMulticast();
+	
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=ASPlayerCharacter, meta = (AllowPrivateAccess))
 	TObjectPtr<USkeletalMeshComponent> WeaponSkeletalMeshComponent;

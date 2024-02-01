@@ -6,6 +6,7 @@
 #include "Characters/SCharacter.h"
 #include "Game/SGameInstance.h"
 #include "Game/SPlayerState.h"
+#include "Net/UnrealNetwork.h"
 
 // Sets default values for this component's properties
 USStatComponent::USStatComponent()
@@ -39,6 +40,16 @@ void USStatComponent::SetCurrentHP(float InCurrentHP)
 		OnOutOfCurrentHPDelegate.Broadcast();
 		CurrentHP = 0.f;
 	}
+
+	OnCurrentHPChanged_NetMulticast(CurrentHP, CurrentHP);
+}
+
+void USStatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(USStatComponent, MaxHP);
+	DOREPLIFETIME(USStatComponent, CurrentHP);
 }
 
 void USStatComponent::BeginPlay()
@@ -83,6 +94,18 @@ void USStatComponent::OnCurrentLevelChanged(int32 InPrevCurrentLevel, int32 InNe
 	SetCurrentHP(GameInstance->GetCharacterStatDataTableRow(InNewCurrentLevel)->MaxHP);
 }
 
+void USStatComponent::OnCurrentHPChanged_NetMulticast_Implementation(float InPrevCurrentHP, float InNewCurrentHP)
+{
+	if(OnCurrentHPChangeDelegate.IsBound())
+	{
+		OnCurrentHPChangeDelegate.Broadcast(InPrevCurrentHP, InNewCurrentHP);
+	}
+
+	if(InNewCurrentHP < KINDA_SMALL_NUMBER)
+	{
+		OnOutOfCurrentHPDelegate.Broadcast();
+	}
+}
 
 
 

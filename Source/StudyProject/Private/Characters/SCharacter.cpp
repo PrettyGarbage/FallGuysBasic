@@ -39,6 +39,10 @@ ASCharacter::ASCharacter()
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
 
 	StatComponent = CreateDefaultSubobject<USStatComponent>(TEXT("StatComponent"));
+	if(HasAuthority()) //서버가 판별하도록
+	{
+		StatComponent->SetIsReplicated(true);
+	}
 }
 
 void ASCharacter::BeginPlay()
