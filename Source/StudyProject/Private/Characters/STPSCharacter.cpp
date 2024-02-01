@@ -12,6 +12,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Inputs/SInputConfigData.h"
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Net/UnrealNetwork.h"
 #include "WorldStatic/SLandMine.h"
@@ -264,11 +265,16 @@ void ASTPSCharacter::Fire()
 	if(!AnimInstance->Montage_IsPlaying(RifleFireAnimMontage))
 	{
 		AnimInstance->Montage_Play(RifleFireAnimMontage);
+		PlayAttackMontage_Server();
 	}
 
 	if(IsValid(FireShake))
 	{
-		PlayerController->ClientStartCameraShake(FireShake);
+		//컨트롤러가 내거일 때만 카메라 쉐이킹
+		if(GetOwner() == UGameplayStatics::GetPlayerController(this, 0))
+		{
+			PlayerController->ClientStartCameraShake(FireShake);
+		}
 	}
 }
 
@@ -315,6 +321,27 @@ void ASTPSCharacter::OnTakeHitRagdollRestoreTimerElapsed()
 void ASTPSCharacter::SpawnLandMine()
 {
 	SpawnLandMine_Server();
+}
+
+void ASTPSCharacter::PlayAttackMontage_NetMulticast_Implementation()
+{
+	if(!HasAuthority() && GetOwner() != UGameplayStatics::GetPlayerController(this, 0))
+	{
+		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+		if(!IsValid(AnimInstance))
+		{
+			return;
+		}
+		if(!AnimInstance->Montage_IsPlaying(RifleFireAnimMontage))
+		{
+			AnimInstance->Montage_Play(RifleFireAnimMontage);
+		}
+	}
+}
+
+void ASTPSCharacter::PlayAttackMontage_Server_Implementation()
+{
+	PlayAttackMontage_NetMulticast();
 }
 
 
