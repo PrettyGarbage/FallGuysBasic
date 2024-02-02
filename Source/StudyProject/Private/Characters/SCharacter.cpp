@@ -6,8 +6,11 @@
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SStatComponent.h"
+#include "Controllers/SPlayerController.h"
+#include "Game/SGameState.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 // Sets default values
@@ -64,6 +67,12 @@ float ASCharacter::TakeDamage(float Damage, FDamageEvent const& DamageEvent, ACo
 {
 	float FinalDamageAmount = Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
 
+	ASGameState* SGameState =Cast<ASGameState>(UGameplayStatics::GetGameState(this));
+	if(IsValid(SGameState) && EMatchState::Playing != SGameState->MatchState)
+	{
+		return FinalDamageAmount;
+	}
+	
 	StatComponent->SetCurrentHP(StatComponent->GetCurrentHP() - FinalDamageAmount);
 
 	UKismetSystemLibrary::PrintString(this, FString::Printf(TEXT("%s [%.1f / %.1f]"), *GetName(), StatComponent->GetCurrentHP(), StatComponent->GetMaxHP()));
@@ -80,6 +89,12 @@ void ASCharacter::OnCharacterDeath()
 	if (StatComponent->OnOutOfCurrentHPDelegate.IsAlreadyBound(this, &ThisClass::OnCharacterDeath))
 	{
 		StatComponent->OnOutOfCurrentHPDelegate.RemoveDynamic(this, &ThisClass::OnCharacterDeath);
+	}
+
+	ASPlayerController* SPlayerController = GetController<ASPlayerController>();
+	if (IsValid(SPlayerController) && HasAuthority())
+	{
+		SPlayerController->OnOwningCharacterDead();
 	}
 }
 

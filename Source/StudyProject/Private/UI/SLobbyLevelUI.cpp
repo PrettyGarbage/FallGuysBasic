@@ -6,6 +6,7 @@
 #include "SPlayerCharacterSettings.h"
 #include "Components/Button.h"
 #include "Components/EditableText.h"
+#include "Controllers/SUIPlayerController.h"
 #include "Game/SGameInstance.h"
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
@@ -41,7 +42,13 @@ void USLobbyLevelUI::OnSubmitButtonClicked()
 	}
 
 	SaveInitializeSaveData();
-	UGameplayStatics::OpenLevel(GetWorld(), TEXT("Loading"), true, FString(TEXT("NextLevel=Example?Saved=false")));
+
+	ASUIPlayerController* PlayerController = GetOwningPlayer<ASUIPlayerController>();
+	if(IsValid(PlayerController))
+	{
+		FText ServerIP = EditServerIP->GetText();
+		PlayerController->JoinServer(ServerIP.ToString());
+	}
 }
 
 void USLobbyLevelUI::SaveInitializeSaveData()

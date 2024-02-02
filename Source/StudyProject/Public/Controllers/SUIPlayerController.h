@@ -17,6 +17,8 @@ class STUDYPROJECT_API ASUIPlayerController : public APlayerController
 public:
 	virtual void BeginPlay() override;
 
+	void JoinServer(const FString& InIPAddress);
+
 private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category=ASUIPlayerController, meta=(AllowPrivateAccess))
 	TSubclassOf<class UUserWidget> UIWidgetClass;

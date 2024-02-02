@@ -48,4 +48,7 @@ protected:
 	FString PlayerName = TEXT("DefaultPlayerName");
 	
 	ETeamType SelectedTeamType = ETeamType::Red;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = USLobbyLevelUI, Meta = (AllowPrivateAccess, BindWidget))
+	TObjectPtr<class UEditableText> EditServerIP;
 };

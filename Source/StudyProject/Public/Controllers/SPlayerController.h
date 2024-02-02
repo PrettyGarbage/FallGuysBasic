@@ -19,11 +19,28 @@ public:
 	class USHUD* GetHUDWidget() const { return HUDWidget; }
 
 	void ToggleMenu();
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	void OnOwningCharacterDead();
+
+	UFUNCTION(Client, Reliable)
+	void ShowWinnerUI();
+
+	UFUNCTION(Client, Reliable)
+	void ShowLooserUI(int32 InRanking);
+
+	UFUNCTION(Client, Reliable)
+	void ReturnToLobby();
 	
 protected:
 	virtual void  SetupInputComponent() override;
 	virtual void BeginPlay() override;
 
+public:
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = ASPlayerController, Meta = (AllowPrivateAccess))
+	FText NotificationText;
+	
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category= ASPlayerController, meta=(AllowPrivateAccess))
 	TSubclassOf<class UUserWidget> MenuUIClass;
@@ -33,11 +50,20 @@ protected:
 
 	bool bIsMenuOn = false;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category= ASPlayerController, meta=(AllowPrivateAccess))
+	TSubclassOf<class UUserWidget> NotificationTextUIClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category= ASPlayerController, meta=(AllowPrivateAccess))
+	TSubclassOf<class USGameResultWidget> WinnerUIClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category= ASPlayerController, meta=(AllowPrivateAccess))
+	TSubclassOf<class USGameResultWidget> LooserUIClass;
+	
 private:
 	UPROPERTY();
 	TObjectPtr<class USHUD> HUDWidget;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "ASPlayerController", Meta = (AllowPrivateAccess));
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = ASPlayerController, Meta = (AllowPrivateAccess));
 	TSubclassOf<class USHUD> HUDWidgetClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = USTPSAnimInstance, meta = (AllowPrivateAccess))
