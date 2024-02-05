@@ -164,10 +164,12 @@ void ASGameMode::OnMainTimerElapsed()
 				}
 
 				MainTimerHandle.Invalidate();
+
+				//서버 초기화
+				//FName CurrentLevelName = FName(UGameplayStatics::GetCurrentLevelName(this));
+				//UGameplayStatics::OpenLevel(this, CurrentLevelName, true, FString(TEXT("listen")));
 			}
-		
-			FName CurrentLevelName = FName(UGameplayStatics::GetCurrentLevelName(this));
-			UGameplayStatics::OpenLevel(this, CurrentLevelName, true, FString(TEXT("listen")));
+			
 			break;
 		}
 	case EMatchState::End:
