@@ -63,7 +63,7 @@ void ASRPGCharacter::BeginPlay()
     Super::BeginPlay();
 
     APlayerController* PlayerController = Cast<APlayerController>(GetController());
-    if (true == ::IsValid(PlayerController))
+    if (IsValid(PlayerController))
     {
         UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer());
         if (true == ::IsValid(Subsystem))
@@ -73,7 +73,7 @@ void ASRPGCharacter::BeginPlay()
     }
 
     USAnimInstance* AnimInstance = Cast<USAnimInstance>(GetMesh()->GetAnimInstance());
-    if(true == IsValid(AnimInstance))
+    if(IsValid(AnimInstance))
     {
         AnimInstance->OnMontageEnded.AddDynamic(this, &ThisClass::OnAttackMontageEnded);
         AnimInstance->OnCheckHitDelegate.AddDynamic(this, &ThisClass::CheckHit);
@@ -122,7 +122,7 @@ void ASRPGCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
     Super::SetupPlayerInputComponent(PlayerInputComponent);
 
     UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent);
-    if (true == ::IsValid(EnhancedInputComponent))
+    if (IsValid(EnhancedInputComponent))
     {
         EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->MoveAction, ETriggerEvent::Triggered, this, &ThisClass::Move);
         EnhancedInputComponent->BindAction(PlayerCharacterInputConfigData->LookAction, ETriggerEvent::Triggered, this, &ThisClass::Look);
