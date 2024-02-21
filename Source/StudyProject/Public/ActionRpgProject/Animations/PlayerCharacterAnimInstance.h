@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ActionRpgProject/Characters/ActionCharacter.h"
 #include "Animation/AnimInstance.h"
 #include "PlayerCharacterAnimInstance.generated.h"
 
@@ -31,4 +32,7 @@ private:
 	
 	UPROPERTY(BlueprintReadOnly, Category=CharacterAnimInstance, meta=(AllowPrivateAccess = true))
 	uint8 IsFalling : 1;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Movement | Character State", meta=(AllowPrivateAccess = true))
+	ECharacterState CharacterState;
 };

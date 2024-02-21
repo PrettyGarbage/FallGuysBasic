@@ -6,6 +6,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "ActionRpgProject/Inputs/InputConfigDatas.h"
+#include "ActionRpgProject/Items/SwordWeapon.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -64,6 +65,7 @@ void AActionCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		EnhancedInputComponent->BindAction(InputConfigData->MoveAction, ETriggerEvent::Triggered, this, &AActionCharacter::Move);
 		EnhancedInputComponent->BindAction(InputConfigData->LookAction, ETriggerEvent::Triggered, this, &AActionCharacter::Look);
 		EnhancedInputComponent->BindAction(InputConfigData->JumpAction, ETriggerEvent::Started, this, &AActionCharacter::Jump);
+		EnhancedInputComponent->BindAction(InputConfigData->EquipAction, ETriggerEvent::Triggered, this, &AActionCharacter::Equip);
 	}
 }
 
@@ -87,6 +89,16 @@ void AActionCharacter::Look(const FInputActionValue& InValue)
 
 	AddControllerYawInput(LookAxisVector.X);
 	AddControllerPitchInput(LookAxisVector.Y);
+}
+
+void AActionCharacter::Equip(const FInputActionValue& InValue)
+{
+	ASwordWeapon* OverlappingSword = Cast<ASwordWeapon>(OverlappingItem);
+	if(IsValid(OverlappingSword))
+	{
+		OverlappingSword->Equip(GetMesh(), FName("RightHandSocket"));
+		CurrentState = ECharacterState::ECS_Equipped;
+	}
 }
 
 

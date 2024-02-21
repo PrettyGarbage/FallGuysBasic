@@ -3,9 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "CharacterTypes.h"
 #include "InputActionValue.h"
 #include "GameFramework/Character.h"
 #include "ActionCharacter.generated.h"
+
 
 UCLASS()
 class STUDYPROJECT_API AActionCharacter : public ACharacter
@@ -22,6 +24,9 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	FORCEINLINE void SetOverlappingItem(class AItemBase* InItem) { OverlappingItem = InItem; }
+	FORCEINLINE ECharacterState GetCharacterState() const { return CurrentState; }
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -31,7 +36,11 @@ private:
 
 	void Look(const FInputActionValue& InValue);
 
+	void Equip(const FInputActionValue& InValue);
+
 private:
+	ECharacterState CurrentState = ECharacterState::ECS_UnEquipped;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess=true))
 	TObjectPtr<class UInputConfigDatas> InputConfigData;
 	
@@ -43,5 +52,8 @@ private:
 
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<class UCameraComponent> CameraComponent;
+
+	UPROPERTY(VisibleInstanceOnly)
+	TObjectPtr<class AItemBase> OverlappingItem;
 
 };

@@ -30,13 +30,18 @@ public:
 	UFUNCTION()
 	virtual void OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess))
+	TObjectPtr<class UStaticMeshComponent> ItemMesh;
+
+protected:
+	uint8 bIsEquipped : 1 = false;
+	
 private:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ItemBase", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ItemBase", meta = (AllowPrivateAccess))
 	float RunningTime;
 	
 	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<class UStaticMeshComponent> ItemMesh;
-	
-	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<class USphereComponent> SphereComponent;
+
+	
 };

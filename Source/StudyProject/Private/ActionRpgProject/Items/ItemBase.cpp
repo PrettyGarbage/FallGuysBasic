@@ -3,6 +3,7 @@
 
 #include "ActionRpgProject/Items/ItemBase.h"
 
+#include "ActionRpgProject/Characters/ActionCharacter.h"
 #include "Components/SphereComponent.h"
 
 
@@ -32,20 +33,24 @@ void AItemBase::BeginPlay()
 void AItemBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	
-	//Actor Rotate
-	FRotator NewRotation = GetActorRotation();
-	NewRotation.Yaw += DeltaTime * 100.f;
-	SetActorRotation(NewRotation);
+
+	if(!bIsEquipped)
+	{
+		FRotator NewRotation = GetActorRotation();
+		NewRotation.Yaw += DeltaTime * 100.f;
+		SetActorRotation(NewRotation);
+	}
+
 }
 
 void AItemBase::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	const FString OtherActorName = OtherActor->GetName();
-	if(IsValid(GEngine))
+	AActionCharacter* ActionCharacter = Cast<AActionCharacter>(OtherActor);
+	if(IsValid(ActionCharacter))
 	{
-		GEngine->AddOnScreenDebugMessage(1, 30.f, FColor::Red, OtherActorName + TEXT(" is overlapped"));
+		ActionCharacter->SetOverlappingItem(this);
 	}
 }
 
@@ -53,9 +58,10 @@ void AItemBase::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	const FString OtherActorName = OtherActor->GetName();
-	if(IsValid(GEngine))
+	AActionCharacter* ActionCharacter = Cast<AActionCharacter>(OtherActor);
+	if(IsValid(ActionCharacter))
 	{
-		GEngine->AddOnScreenDebugMessage(1, 30.f, FColor::Blue, OtherActorName + TEXT(" is overlapped"));
+		ActionCharacter->SetOverlappingItem(nullptr);
 	}
 }
 
