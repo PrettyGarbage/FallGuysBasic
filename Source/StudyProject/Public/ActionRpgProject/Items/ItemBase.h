@@ -6,6 +6,13 @@
 #include "GameFramework/Actor.h"
 #include "ItemBase.generated.h"
 
+UENUM(BlueprintType)
+enum class EItemState : uint8
+{
+	EIS_None,
+	EIS_Equipped,
+};
+
 UCLASS()
 class STUDYPROJECT_API AItemBase : public AActor
 {
@@ -32,9 +39,8 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess))
 	TObjectPtr<class UStaticMeshComponent> ItemMesh;
-
-protected:
-	uint8 bIsEquipped : 1 = false;
+	
+	EItemState ItemState = EItemState::EIS_None;
 	
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ItemBase", meta = (AllowPrivateAccess))

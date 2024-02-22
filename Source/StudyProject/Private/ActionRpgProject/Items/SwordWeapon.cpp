@@ -13,7 +13,7 @@ ASwordWeapon::ASwordWeapon()
 
 void ASwordWeapon::Equip(USceneComponent* InParent, FName InSocketName)
 {
-	bIsEquipped = true;
+	ItemState = EItemState::EIS_Equipped;
 	const FAttachmentTransformRules TransformRules(EAttachmentRule::SnapToTarget, true);
 	ItemMesh->AttachToComponent(InParent, TransformRules, InSocketName);
 }

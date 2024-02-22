@@ -26,6 +26,7 @@ public:
 
 	FORCEINLINE void SetOverlappingItem(class AItemBase* InItem) { OverlappingItem = InItem; }
 	FORCEINLINE ECharacterState GetCharacterState() const { return CurrentState; }
+	FORCEINLINE void SetCharacterActionState(EActionState InState) { CurrentActionState = InState; }
 
 protected:
 	// Called when the game starts or when spawned
@@ -38,8 +39,16 @@ private:
 
 	void Equip(const FInputActionValue& InValue);
 
+	void Attack(const FInputActionValue& InValue);
+
+	void PlayAttackMontage();
+
+	bool CanAttack() const;
 private:
 	ECharacterState CurrentState = ECharacterState::ECS_UnEquipped;
+
+	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = true))
+	EActionState CurrentActionState = EActionState::EAS_None;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess=true))
 	TObjectPtr<class UInputConfigDatas> InputConfigData;
@@ -56,4 +65,6 @@ private:
 	UPROPERTY(VisibleInstanceOnly)
 	TObjectPtr<class AItemBase> OverlappingItem;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Montage")
+	TObjectPtr<class UAnimMontage> AttackMontage;
 };

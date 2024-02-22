@@ -66,11 +66,14 @@ void AActionCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		EnhancedInputComponent->BindAction(InputConfigData->LookAction, ETriggerEvent::Triggered, this, &AActionCharacter::Look);
 		EnhancedInputComponent->BindAction(InputConfigData->JumpAction, ETriggerEvent::Started, this, &AActionCharacter::Jump);
 		EnhancedInputComponent->BindAction(InputConfigData->EquipAction, ETriggerEvent::Triggered, this, &AActionCharacter::Equip);
+		EnhancedInputComponent->BindAction(InputConfigData->AttackAction, ETriggerEvent::Triggered, this, &AActionCharacter::Attack);
 	}
 }
 
 void AActionCharacter::Move(const FInputActionValue& InValue)
 {
+	if(CurrentActionState == EActionState::EAS_Attacking) return;
+	
 	FVector2d MovementVector = InValue.Get<FVector2d>();
 
 	const FRotator ControlRotation = GetControlRotation();
@@ -100,6 +103,37 @@ void AActionCharacter::Equip(const FInputActionValue& InValue)
 		CurrentState = ECharacterState::ECS_Equipped;
 	}
 }
+
+void AActionCharacter::Attack(const FInputActionValue& InValue)
+{
+	if(CanAttack())
+	{
+		PlayAttackMontage();
+		CurrentActionState = EActionState::EAS_Attacking;
+	}
+}
+
+void AActionCharacter::PlayAttackMontage()
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if(IsValid(AnimInstance) && IsValid(AttackMontage))
+	{
+		AnimInstance->Montage_Play(AttackMontage);
+		int32 Selection = FMath::RandRange(0, 3);
+		const FString BaseString = "Attack";
+		FName SectionName = FName(BaseString + FString::FromInt(Selection));
+
+		AnimInstance->Montage_JumpToSection(SectionName, AttackMontage);
+	}
+}
+
+bool AActionCharacter::CanAttack() const
+{
+	return CurrentActionState == EActionState::EAS_None
+	&& CurrentState != ECharacterState::ECS_UnEquipped;
+}
+
+
 
 
 

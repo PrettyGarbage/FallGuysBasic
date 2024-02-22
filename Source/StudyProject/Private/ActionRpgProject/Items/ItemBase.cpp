@@ -34,7 +34,7 @@ void AItemBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if(!bIsEquipped)
+	if(ItemState == EItemState::EIS_None)
 	{
 		FRotator NewRotation = GetActorRotation();
 		NewRotation.Yaw += DeltaTime * 100.f;
