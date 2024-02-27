@@ -8,6 +8,7 @@
 #include "ActionRpgProject/Inputs/InputConfigDatas.h"
 #include "ActionRpgProject/Items/SwordWeapon.h"
 #include "Camera/CameraComponent.h"
+#include "Components/BoxComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 
@@ -32,6 +33,7 @@ AActionCharacter::AActionCharacter()
 
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 400.f, 0.f);
+	
 }
 
 // Called when the game starts or when spawned
@@ -65,14 +67,22 @@ void AActionCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		EnhancedInputComponent->BindAction(InputConfigData->MoveAction, ETriggerEvent::Triggered, this, &AActionCharacter::Move);
 		EnhancedInputComponent->BindAction(InputConfigData->LookAction, ETriggerEvent::Triggered, this, &AActionCharacter::Look);
 		EnhancedInputComponent->BindAction(InputConfigData->JumpAction, ETriggerEvent::Started, this, &AActionCharacter::Jump);
-		EnhancedInputComponent->BindAction(InputConfigData->EquipAction, ETriggerEvent::Triggered, this, &AActionCharacter::Equip);
+		EnhancedInputComponent->BindAction(InputConfigData->EquipAction, ETriggerEvent::Started, this, &AActionCharacter::Equip);
 		EnhancedInputComponent->BindAction(InputConfigData->AttackAction, ETriggerEvent::Triggered, this, &AActionCharacter::Attack);
+	}
+}
+
+void AActionCharacter::SetWeaponCollisionEnabled(ECollisionEnabled::Type InType)
+{
+	if(IsValid(EquippedWeapon) && IsValid(EquippedWeapon->GetWeaponBox()))
+	{
+		EquippedWeapon->GetWeaponBox()->SetCollisionEnabled(InType);
 	}
 }
 
 void AActionCharacter::Move(const FInputActionValue& InValue)
 {
-	if(CurrentActionState == EActionState::EAS_Attacking) return;
+	if(CurrentActionState != EActionState::EAS_None) return;
 	
 	FVector2d MovementVector = InValue.Get<FVector2d>();
 
@@ -101,6 +111,23 @@ void AActionCharacter::Equip(const FInputActionValue& InValue)
 	{
 		OverlappingSword->Equip(GetMesh(), FName("RightHandSocket"));
 		CurrentState = ECharacterState::ECS_Equipped;
+		OverlappingItem = nullptr;
+		EquippedWeapon = OverlappingSword;
+	}
+	else
+	{
+		if(CanDisarm())
+		{
+			PlayEquipMontage(FName("Unequip"));
+			CurrentState = ECharacterState::ECS_UnEquipped;
+			CurrentActionState = EActionState::EAS_Equipping;
+		}
+		else if(CanArm())
+		{
+			PlayEquipMontage(FName("Equip"));
+			CurrentState = ECharacterState::ECS_Equipped;
+			CurrentActionState = EActionState::EAS_Equipping;
+		}
 	}
 }
 
@@ -127,10 +154,55 @@ void AActionCharacter::PlayAttackMontage()
 	}
 }
 
+void AActionCharacter::PlayEquipMontage(FName SectionName)
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if(IsValid(AnimInstance) && IsValid(EquipMontage))
+	{
+		AnimInstance->Montage_Play(EquipMontage);
+		AnimInstance->Montage_JumpToSection(SectionName, EquipMontage);
+	}
+}
+
 bool AActionCharacter::CanAttack() const
 {
-	return CurrentActionState == EActionState::EAS_None
-	&& CurrentState != ECharacterState::ECS_UnEquipped;
+	return CurrentActionState == EActionState::EAS_None &&
+		CurrentState != ECharacterState::ECS_UnEquipped;
+}
+
+bool AActionCharacter::CanDisarm() const
+{
+	return CurrentActionState == EActionState::EAS_None &&
+		CurrentState != ECharacterState::ECS_UnEquipped &&
+			EquippedWeapon;
+}
+
+bool AActionCharacter::CanArm() const
+{
+	return CurrentActionState == EActionState::EAS_None &&
+		CurrentState == ECharacterState::ECS_UnEquipped &&
+			EquippedWeapon;
+}
+
+void AActionCharacter::Disarm()
+{
+	if(EquippedWeapon)
+	{
+		EquippedWeapon->AttachMeshToSocket(GetMesh(), FName("SpineSocket"));
+	}
+}
+
+void AActionCharacter::Arm()
+{
+	if(EquippedWeapon)
+	{
+		EquippedWeapon->AttachMeshToSocket(GetMesh(), FName("RightHandSocket"));
+	}
+}
+
+void AActionCharacter::FinishEquipping()
+{
+	CurrentActionState = EActionState::EAS_None;
 }
 
 

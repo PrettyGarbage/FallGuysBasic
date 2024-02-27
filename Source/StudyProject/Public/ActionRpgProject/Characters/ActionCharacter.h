@@ -23,11 +23,19 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	
+	void SetWeaponCollisionEnabled(ECollisionEnabled::Type InType);
 
 	FORCEINLINE void SetOverlappingItem(class AItemBase* InItem) { OverlappingItem = InItem; }
 	FORCEINLINE ECharacterState GetCharacterState() const { return CurrentState; }
 	FORCEINLINE void SetCharacterActionState(EActionState InState) { CurrentActionState = InState; }
+	
 
+	//Animation Notify Bind Functions
+	void Disarm();
+	void Arm();
+	void FinishEquipping();
+	
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -40,10 +48,18 @@ private:
 	void Equip(const FInputActionValue& InValue);
 
 	void Attack(const FInputActionValue& InValue);
-
+	
 	void PlayAttackMontage();
 
+	void PlayEquipMontage(FName SectionName);
+
 	bool CanAttack() const;
+
+	bool CanDisarm() const;
+
+	bool CanArm() const;
+	
+	
 private:
 	ECharacterState CurrentState = ECharacterState::ECS_UnEquipped;
 
@@ -65,6 +81,13 @@ private:
 	UPROPERTY(VisibleInstanceOnly)
 	TObjectPtr<class AItemBase> OverlappingItem;
 
+	UPROPERTY(VisibleAnywhere, Category= "Weapon")
+	TObjectPtr<class ASwordWeapon> EquippedWeapon;
+	
 	UPROPERTY(EditDefaultsOnly, Category = "Montage")
 	TObjectPtr<class UAnimMontage> AttackMontage;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Montage")
+	TObjectPtr<class UAnimMontage> EquipMontage;
+	
 };

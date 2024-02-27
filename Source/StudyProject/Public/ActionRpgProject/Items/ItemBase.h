@@ -41,13 +41,13 @@ public:
 	TObjectPtr<class UStaticMeshComponent> ItemMesh;
 	
 	EItemState ItemState = EItemState::EIS_None;
+
+protected:
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<class USphereComponent> SphereComponent;
 	
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ItemBase", meta = (AllowPrivateAccess))
 	float RunningTime;
-	
-	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<class USphereComponent> SphereComponent;
-
 	
 };

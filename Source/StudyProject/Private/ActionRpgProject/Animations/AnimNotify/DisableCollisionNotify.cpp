@@ -1,13 +1,12 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "ActionRpgProject/Animations/AnimNotify/AttackEndNotify.h"
+#include "ActionRpgProject/Animations/AnimNotify/DisableCollisionNotify.h"
 
 #include "ActionRpgProject/Characters/ActionCharacter.h"
 
-
-void UAttackEndNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation,
-                              const FAnimNotifyEventReference& EventReference)
+void UDisableCollisionNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation,
+                                     const FAnimNotifyEventReference& EventReference)
 {
 	Super::Notify(MeshComp, Animation, EventReference);
 
@@ -16,7 +15,7 @@ void UAttackEndNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBas
 		AActionCharacter* BindCharacter = Cast<AActionCharacter>(MeshComp->GetOwner());
 		if(IsValid(BindCharacter))
 		{
-			BindCharacter->SetCharacterActionState(EActionState::EAS_None);
+			BindCharacter->SetWeaponCollisionEnabled(ECollisionEnabled::NoCollision);
 		}
 	}
 }
