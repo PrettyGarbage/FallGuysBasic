@@ -77,6 +77,7 @@ void AActionCharacter::SetWeaponCollisionEnabled(ECollisionEnabled::Type InType)
 	if(IsValid(EquippedWeapon) && IsValid(EquippedWeapon->GetWeaponBox()))
 	{
 		EquippedWeapon->GetWeaponBox()->SetCollisionEnabled(InType);
+		EquippedWeapon->IgnoreActors.Empty();
 	}
 }
 

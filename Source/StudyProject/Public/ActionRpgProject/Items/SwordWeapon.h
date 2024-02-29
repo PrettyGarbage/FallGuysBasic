@@ -18,6 +18,9 @@ public:
 	void AttachMeshToSocket(USceneComponent* InParent, const FName& InSocketName);
 
 	FORCEINLINE TObjectPtr<class UBoxComponent> GetWeaponBox() const { return WeaponBox; }
+
+	UPROPERTY()
+	TArray<TObjectPtr<class AActor>> IgnoreActors;
 	
 protected:
 	virtual void BeginPlay() override;

@@ -3,6 +3,7 @@
 
 #include "ActionRpgProject/Items/SwordWeapon.h"
 
+#include "ActionRpgProject/Interfaces/HitInterface.h"
 #include "Components/BoxComponent.h"
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -77,8 +78,12 @@ void ASwordWeapon::OnBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor
 	
 	TArray<AActor*> ActorsToIgnore;
 	ActorsToIgnore.Add(this);
-	FHitResult BoxHit;
+	for(AActor* Actor : IgnoreActors)
+	{
+		ActorsToIgnore.AddUnique(Actor);
+	}
 	
+	FHitResult BoxHit;
 	UKismetSystemLibrary::BoxTraceSingle(
 		this,
 		Start,
@@ -88,11 +93,19 @@ void ASwordWeapon::OnBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor
 		TraceTypeQuery1,
 		false,
 		ActorsToIgnore,
-		EDrawDebugTrace::ForDuration,
+		EDrawDebugTrace::None,
 		BoxHit,
 		true
 		);
-	
+
+	if(IsValid(BoxHit.GetActor()))
+	{
+		if(IHitInterface* HitInterface = Cast<IHitInterface>(BoxHit.GetActor()))
+		{
+			HitInterface->GetHit(BoxHit.ImpactPoint);
+		}
+		IgnoreActors.AddUnique(BoxHit.GetActor());
+	}
 }
 
 
