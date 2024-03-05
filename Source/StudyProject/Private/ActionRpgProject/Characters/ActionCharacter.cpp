@@ -10,7 +10,10 @@
 #include "Camera/CameraComponent.h"
 #include "Components/BoxComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "GameFramework/PlayerState.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "TPSStudyProject/Game/SPlayerState.h"
 
 
 // Sets default values
@@ -108,12 +111,18 @@ void AActionCharacter::Look(const FInputActionValue& InValue)
 void AActionCharacter::Equip(const FInputActionValue& InValue)
 {
 	ASwordWeapon* OverlappingSword = Cast<ASwordWeapon>(OverlappingItem);
+	
 	if(IsValid(OverlappingSword))
 	{
-		OverlappingSword->Equip(GetMesh(), FName("RightHandSocket"));
+		OverlappingSword->Equip(GetMesh(), FName("RightHandSocket"), this, this);
+		OverlappingSword->SetOwner(this);
+		OverlappingSword->SetInstigator(this);
 		CurrentState = ECharacterState::ECS_Equipped;
 		OverlappingItem = nullptr;
 		EquippedWeapon = OverlappingSword;
+
+		EquippedWeapon->GetWeaponBox()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		EquippedWeapon->IgnoreActors.Empty();
 	}
 	else
 	{

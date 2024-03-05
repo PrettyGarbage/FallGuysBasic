@@ -23,6 +23,12 @@ public class StudyProject : ModuleRules
 			
 			//UI
 			"UMG",
+			
+			//Geometry
+			"GeometryCollectionEngine",
+			
+			//Niagara
+			"Niagara",
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[]

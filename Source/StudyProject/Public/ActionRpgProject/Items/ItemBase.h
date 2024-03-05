@@ -45,6 +45,9 @@ public:
 protected:
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<class USphereComponent> SphereComponent;
+
+	UPROPERTY(EditAnywhere, Category = "Niagara")
+	TObjectPtr<class UNiagaraComponent> NiagaraComponent;
 	
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "ItemBase", meta = (AllowPrivateAccess))

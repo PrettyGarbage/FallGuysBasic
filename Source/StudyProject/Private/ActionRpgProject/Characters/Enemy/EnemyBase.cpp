@@ -3,9 +3,10 @@
 
 #include "ActionRpgProject/Characters/Enemy/EnemyBase.h"
 
+#include "ActionRpgProject/Components/AttributeComponent.h"
+#include "ActionRpgProject/HUD/HealthBarComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Kismet/GameplayStatics.h"
-#include "Kismet/KismetSystemLibrary.h"
 
 
 // Sets default values
@@ -19,13 +20,21 @@ AEnemyBase::AEnemyBase()
 	GetMesh()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 	GetMesh()->SetGenerateOverlapEvents(true);
+
+	AttributeComponent = CreateDefaultSubobject<UAttributeComponent>(TEXT("Attributes"));
+	HealthBarWidget = CreateDefaultSubobject<UHealthBarComponent>(TEXT("HealthBarWidget"));
+	HealthBarWidget->SetupAttachment(GetRootComponent());
 }
 
 // Called when the game starts or when spawned
 void AEnemyBase::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	if(IsValid(HealthBarWidget))
+	{
+		HealthBarWidget->SetHealthPercentage(AttributeComponent->GetHealthPercent());
+	}
 }
 
 void AEnemyBase::PlayHitReactMontage(const FName& SectionName)
@@ -35,6 +44,19 @@ void AEnemyBase::PlayHitReactMontage(const FName& SectionName)
 	{
 		AnimInstance->Montage_Play(HitReactMontage);
 		AnimInstance->Montage_JumpToSection(SectionName, HitReactMontage);
+	}
+}
+
+void AEnemyBase::Die()
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if(IsValid(AnimInstance) && IsValid(DeathMontage))
+	{
+		AnimInstance->Montage_Play(DeathMontage);
+		const int32 Selection = FMath::RandRange(1, 4);
+		const FName SectionName = FName(*FString::Printf(TEXT("Death%d"), Selection));
+		DeathPose = GetDeathPoseEnumValue(SectionName);
+		AnimInstance->Montage_JumpToSection(SectionName, DeathMontage);
 	}
 }
 
@@ -57,7 +79,7 @@ void AEnemyBase::DirectionHitReact(const FVector& ImpactPoint)
 	//높이에 대한 부분은 무시한다.
 	const FVector ImpactHeight = FVector(ImpactPoint.X, ImpactPoint.Y, GetActorLocation().Z);
 	//normalize를 통해 각도를 구할 수 맞은 방향의 방향 벡터를 구한다.
-	const FVector ToHit = (ImpactPoint - GetActorLocation()).GetSafeNormal();
+	const FVector ToHit = (ImpactHeight - GetActorLocation()).GetSafeNormal();
 	//Forward * ToHit = |Forward| * |ToHit| * cos(각도)
 	//|Forward| = 1, |ToHit| = 1이므로(두 단위벡터가 평행하면 절대값은 1이다) cos(각도) = Forward * ToHit
 	const double CosTheta = FVector::DotProduct(Forward, ToHit);
@@ -107,9 +129,17 @@ void AEnemyBase::DirectionHitReact(const FVector& ImpactPoint)
 	// UKismetSystemLibrary::DrawDebugArrow(this, GetActorLocation(), GetActorLocation()+ ToHit * 60.f,5.f, FColor::Red, 5.f, 1.f);
 }
 
-void AEnemyBase::GetHit(const FVector& ImpactPoint)
+void AEnemyBase::GetHit_Implementation(const FVector& ImpactPoint)
 {
-	DirectionHitReact(ImpactPoint);
+	if(IsValid(AttributeComponent) && AttributeComponent->IsAlive())
+	{
+		DirectionHitReact(ImpactPoint);
+	}
+	else
+	{
+		Die();
+	}
+	
 
 	if(IsValid(HitSound))
 	{
@@ -129,6 +159,32 @@ void AEnemyBase::GetHit(const FVector& ImpactPoint)
 			ImpactPoint
 		);
 	}
+}
+
+float AEnemyBase::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator,
+	AActor* DamageCauser)
+{
+	if(IsValid(AttributeComponent) && IsValid(HealthBarWidget))
+	{
+		AttributeComponent->ReceiveDamage(DamageAmount);
+
+		HealthBarWidget->SetHealthPercentage(AttributeComponent->GetHealthPercent());
+	}
+	return DamageAmount;
+}
+
+EDeathPose AEnemyBase::GetDeathPoseEnumValue(FName InName)
+{
+	if(!DeathPoseMap.Contains(InName))
+	{
+		UE_LOG(LogTemp, Error, TEXT("DeathPoseMap does not contain %s"), *InName.ToString());
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("DeathPoseMap contains %s"), *InName.ToString());
+	}
+	
+	return DeathPoseMap.Contains(InName) ? DeathPoseMap[InName] : EDeathPose::EDP_Death1;
 }
 
 

@@ -2,3 +2,8 @@
 
 
 #include "ActionRpgProject/Interfaces/HitInterface.h"
+
+void GetHit(const FVector& ImpactPoint)
+{
+	
+}

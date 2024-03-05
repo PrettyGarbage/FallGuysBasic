@@ -5,6 +5,7 @@
 
 #include "ActionRpgProject/Characters/ActionCharacter.h"
 #include "Components/SphereComponent.h"
+#include "NiagaraComponent.h"
 
 
 // Sets default values
@@ -18,6 +19,9 @@ AItemBase::AItemBase()
 
 	SphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
 	SphereComponent->SetupAttachment(GetRootComponent());
+
+	NiagaraComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NiagaraComponent"));
+	NiagaraComponent->SetupAttachment(GetRootComponent());
 }
 
 // Called when the game starts or when spawned
@@ -34,12 +38,12 @@ void AItemBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	// if(ItemState == EItemState::EIS_None)
-	// {
-	// 	FRotator NewRotation = GetActorRotation();
-	// 	NewRotation.Yaw += DeltaTime * 100.f;
-	// 	SetActorRotation(NewRotation);
-	// }
+	if(ItemState == EItemState::EIS_None)
+	{
+		FRotator NewRotation = GetActorRotation();
+		NewRotation.Yaw += DeltaTime * 100.f;
+		SetActorRotation(NewRotation);
+	}
 
 }
 

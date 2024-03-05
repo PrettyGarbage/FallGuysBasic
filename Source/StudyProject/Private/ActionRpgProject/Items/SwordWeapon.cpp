@@ -7,6 +7,7 @@
 #include "Components/BoxComponent.h"
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "NiagaraComponent.h"
 
 
 // Sets default values
@@ -25,8 +26,11 @@ ASwordWeapon::ASwordWeapon()
 	BoxTraceEnd->SetupAttachment(GetRootComponent());
 }
 
-void ASwordWeapon::Equip(USceneComponent* InParent, FName InSocketName)
+void ASwordWeapon::Equip(USceneComponent* InParent, FName InSocketName, AActor* InActor, APawn* InInstigator)
 {
+	SetOwner(InActor);
+	SetInstigator(InInstigator);
+	
 	AttachMeshToSocket(InParent, InSocketName);
 	ItemState = EItemState::EIS_Equipped;
 
@@ -42,6 +46,11 @@ void ASwordWeapon::Equip(USceneComponent* InParent, FName InSocketName)
 	if(IsValid(SphereComponent))
 	{
 		SphereComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+
+	if(IsValid(NiagaraComponent))
+	{
+		NiagaraComponent->Deactivate();
 	}
 }
 
@@ -100,11 +109,22 @@ void ASwordWeapon::OnBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor
 
 	if(IsValid(BoxHit.GetActor()))
 	{
+		UGameplayStatics::ApplyDamage(
+			BoxHit.GetActor(),
+			Damage,
+			GetInstigator()->GetController(),
+			this,
+			UDamageType::StaticClass()
+			);
+		
 		if(IHitInterface* HitInterface = Cast<IHitInterface>(BoxHit.GetActor()))
 		{
-			HitInterface->GetHit(BoxHit.ImpactPoint);
+			HitInterface->Execute_GetHit(BoxHit.GetActor(), BoxHit.ImpactPoint);
 		}
+
 		IgnoreActors.AddUnique(BoxHit.GetActor());
+
+		CreateFields(BoxHit.ImpactPoint);
 	}
 }
 

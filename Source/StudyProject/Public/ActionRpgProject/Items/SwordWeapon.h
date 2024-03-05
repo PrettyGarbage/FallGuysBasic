@@ -14,7 +14,7 @@ class STUDYPROJECT_API ASwordWeapon : public AItemBase
 public:
 	// Sets default values for this actor's properties
 	ASwordWeapon();
-	void Equip(USceneComponent* InParent, FName InSocketName);
+	void Equip(USceneComponent* InParent, FName InSocketName, AActor* InActor, APawn* InInstigator);
 	void AttachMeshToSocket(USceneComponent* InParent, const FName& InSocketName);
 
 	FORCEINLINE TObjectPtr<class UBoxComponent> GetWeaponBox() const { return WeaponBox; }
@@ -31,6 +31,9 @@ protected:
 	UFUNCTION()
 	void OnBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void CreateFields(const FVector& FieldLocation);
+	
 private:
 	UPROPERTY(EditAnywhere, Category="Weapon Properties")
 	TObjectPtr<class USoundBase> EquipSound;
@@ -43,4 +46,7 @@ private:
 
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<class USceneComponent> BoxTraceEnd;
+
+	UPROPERTY(EditAnywhere, Category="Weapon Properties")
+	float Damage = 20.f;
 };
