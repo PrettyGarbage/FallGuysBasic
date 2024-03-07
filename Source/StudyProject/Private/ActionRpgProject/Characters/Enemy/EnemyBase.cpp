@@ -3,10 +3,16 @@
 
 #include "ActionRpgProject/Characters/Enemy/EnemyBase.h"
 
+#include "AIController.h"
 #include "ActionRpgProject/Components/AttributeComponent.h"
 #include "ActionRpgProject/HUD/HealthBarComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Navigation/PathFollowingComponent.h"
+#include "Perception/AIPerceptionComponent.h"
+#include "Perception/AISenseConfig_Sight.h"
+#include "Perception/PawnSensingComponent.h"
 
 
 // Sets default values
@@ -24,6 +30,15 @@ AEnemyBase::AEnemyBase()
 	AttributeComponent = CreateDefaultSubobject<UAttributeComponent>(TEXT("Attributes"));
 	HealthBarWidget = CreateDefaultSubobject<UHealthBarComponent>(TEXT("HealthBarWidget"));
 	HealthBarWidget->SetupAttachment(GetRootComponent());
+
+	GetCharacterMovement()->bOrientRotationToMovement = true;
+	bUseControllerRotationYaw = false;
+	bUseControllerRotationPitch = false;
+	bUseControllerRotationRoll = false;
+
+	PawnSensingComponent = CreateDefaultSubobject<UPawnSensingComponent>(TEXT("PawnSensing"));
+	PawnSensingComponent->SightRadius = 4000.f;
+	PawnSensingComponent->SetPeripheralVisionAngle(45.f);
 }
 
 // Called when the game starts or when spawned
@@ -34,6 +49,16 @@ void AEnemyBase::BeginPlay()
 	if(IsValid(HealthBarWidget))
 	{
 		HealthBarWidget->SetHealthPercentage(AttributeComponent->GetHealthPercent());
+		HealthBarWidget->SetVisibility(false);
+	}
+
+	AIController = Cast<AAIController>(GetController());
+
+	MoveToTarget(PatrolTarget);
+
+	if(IsValid(PawnSensingComponent))
+	{
+		PawnSensingComponent->OnSeePawn.AddDynamic(this, &AEnemyBase::PawnSeen);
 	}
 }
 
@@ -58,12 +83,66 @@ void AEnemyBase::Die()
 		DeathPose = GetDeathPoseEnumValue(SectionName);
 		AnimInstance->Montage_JumpToSection(SectionName, DeathMontage);
 	}
+
+	if(IsValid(HealthBarWidget))
+	{
+		HealthBarWidget->SetVisibility(false);
+	}
+	
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	SetLifeSpan(3.f);
+}
+
+double AEnemyBase::GetTargetDistance() const
+{
+	if(!IsValid(CombatTarget)) return DBL_MAX;
+	
+	return FVector::Dist(GetActorLocation(), CombatTarget->GetActorLocation()); 
+}
+
+bool AEnemyBase::IsTargetInRange(AActor* InTarget, double Radius)
+{
+	if(!IsValid(InTarget)) return false;
+	const double Distance = FVector::Distance(InTarget->GetActorLocation(), GetActorLocation());
+	DrawDebugSphere(GetWorld(), InTarget->GetActorLocation(), Radius, 12, FColor::Red, false, 0.1f);
+	return Distance <= Radius;
+}
+
+void AEnemyBase::PatrolTimerFinished()
+{
+	MoveToTarget(PatrolTarget);
+}
+
+
+void AEnemyBase::CheckCombatTarget()
+{
+	if(!IsTargetInRange(CombatTarget, DistanceToTarget))
+	{
+		CombatTarget = nullptr;
+		if(IsValid(HealthBarWidget))
+		{
+			HealthBarWidget->SetVisibility(false);
+		}
+	}
+}
+
+void AEnemyBase::CheckPatrolTarget()
+{
+	if(IsTargetInRange(PatrolTarget, PatrolRadius))
+	{
+		PatrolTarget = ChoosePatrolTarget();
+		const float WaitTime = FMath::RandRange(WaitMin, WaitMax);
+		GetWorldTimerManager().SetTimer(PatrolTimer, this, &AEnemyBase::PatrolTimerFinished, WaitTime);
+	}
 }
 
 // Called every frame
 void AEnemyBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	
+	CheckCombatTarget();
+	CheckPatrolTarget();
 }
 
 // Called to bind functionality to input
@@ -131,6 +210,12 @@ void AEnemyBase::DirectionHitReact(const FVector& ImpactPoint)
 
 void AEnemyBase::GetHit_Implementation(const FVector& ImpactPoint)
 {
+	//첫 타격시에 UI가 노출되도록
+	if(IsValid(HealthBarWidget) && !HealthBarWidget->IsVisible())
+	{
+		HealthBarWidget->SetVisibility(true);
+	}
+	
 	if(IsValid(AttributeComponent) && AttributeComponent->IsAlive())
 	{
 		DirectionHitReact(ImpactPoint);
@@ -170,6 +255,12 @@ float AEnemyBase::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent
 
 		HealthBarWidget->SetHealthPercentage(AttributeComponent->GetHealthPercent());
 	}
+
+	if(IsValid(EventInstigator))
+	{
+		CombatTarget = EventInstigator->GetPawn();
+	}
+	
 	return DamageAmount;
 }
 
@@ -185,6 +276,41 @@ EDeathPose AEnemyBase::GetDeathPoseEnumValue(FName InName)
 	}
 	
 	return DeathPoseMap.Contains(InName) ? DeathPoseMap[InName] : EDeathPose::EDP_Death1;
+}
+
+TObjectPtr<AActor> AEnemyBase::ChoosePatrolTarget()
+{
+	TArray<AActor*> ValidTargets;
+	for(auto Target : PatrolTargets)
+	{
+		if(Target != PatrolTarget)
+		{
+			ValidTargets.AddUnique(Target);
+		}
+	}
+			
+	const int32 NumPatrolTargets = ValidTargets.Num();
+	if(NumPatrolTargets > 0)
+	{
+		const int32 TargetSelection = FMath::RandRange(0, NumPatrolTargets - 1);
+		return ValidTargets[TargetSelection];
+	}
+	return nullptr;
+}
+
+void AEnemyBase::PawnSeen(APawn* SeenPawn)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Pawn Seen !!!"));
+}
+
+void AEnemyBase::MoveToTarget(AActor* InTarget)
+{
+	if(!IsValid(AIController) || !IsValid(InTarget)) return;
+	
+	FAIMoveRequest MoveRequest;
+	MoveRequest.SetGoalActor(InTarget);
+	MoveRequest.SetAcceptanceRadius(15.f);
+	AIController->MoveTo(MoveRequest);
 }
 
 

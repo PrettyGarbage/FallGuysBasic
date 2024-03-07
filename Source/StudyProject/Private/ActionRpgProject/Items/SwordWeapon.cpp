@@ -107,7 +107,9 @@ void ASwordWeapon::OnBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor
 		true
 		);
 
-	if(IsValid(BoxHit.GetActor()))
+	if(IsValid(BoxHit.GetActor())
+		&& ItemState == EItemState::EIS_Equipped
+		&& !IgnoreActors.Contains(BoxHit.GetActor()))
 	{
 		UGameplayStatics::ApplyDamage(
 			BoxHit.GetActor(),
