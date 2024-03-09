@@ -5,6 +5,7 @@
 
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "ActionRpgProject/Define/DefineVariables.h"
 #include "ActionRpgProject/Inputs/InputConfigDatas.h"
 #include "ActionRpgProject/Items/SwordWeapon.h"
 #include "Camera/CameraComponent.h"
@@ -51,6 +52,8 @@ void AActionCharacter::BeginPlay()
 			Subsystem->AddMappingContext(InputMappingContext, 0);
 		}
 	}
+
+	Tags.Add(GTag_Player);
 }
 
 // Called every frame

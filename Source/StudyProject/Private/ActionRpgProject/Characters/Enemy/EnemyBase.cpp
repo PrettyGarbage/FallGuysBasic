@@ -5,13 +5,12 @@
 
 #include "AIController.h"
 #include "ActionRpgProject/Components/AttributeComponent.h"
+#include "ActionRpgProject/Define/DefineVariables.h"
 #include "ActionRpgProject/HUD/HealthBarComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Navigation/PathFollowingComponent.h"
-#include "Perception/AIPerceptionComponent.h"
-#include "Perception/AISenseConfig_Sight.h"
 #include "Perception/PawnSensingComponent.h"
 
 
@@ -60,6 +59,8 @@ void AEnemyBase::BeginPlay()
 	{
 		PawnSensingComponent->OnSeePawn.AddDynamic(this, &AEnemyBase::PawnSeen);
 	}
+
+	EnemyState = EEnemyState::EES_Patrolling;
 }
 
 void AEnemyBase::PlayHitReactMontage(const FName& SectionName)
@@ -88,7 +89,8 @@ void AEnemyBase::Die()
 	{
 		HealthBarWidget->SetVisibility(false);
 	}
-	
+
+	EnemyState = EEnemyState::EES_Dead; 
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	SetLifeSpan(3.f);
 }
@@ -116,13 +118,26 @@ void AEnemyBase::PatrolTimerFinished()
 
 void AEnemyBase::CheckCombatTarget()
 {
-	if(!IsTargetInRange(CombatTarget, DistanceToTarget))
+	if(!IsTargetInRange(CombatTarget, CombatRadius))
 	{
 		CombatTarget = nullptr;
 		if(IsValid(HealthBarWidget))
 		{
 			HealthBarWidget->SetVisibility(false);
 		}
+		EnemyState = EEnemyState::EES_Patrolling;
+		GetCharacterMovement()->MaxWalkSpeed = 125.f;
+		MoveToTarget(PatrolTarget);
+	}
+	else if (!IsTargetInRange(CombatTarget, AttackRadius) && EnemyState != EEnemyState::EES_Chasing)
+	{
+		EnemyState = EEnemyState::EES_Chasing;
+		GetCharacterMovement()->MaxWalkSpeed = 300.f;
+		MoveToTarget(CombatTarget);
+	}
+	else if (IsTargetInRange(CombatTarget, AttackRadius) && EnemyState != EEnemyState::EES_Attacking)
+	{
+		EnemyState = EEnemyState::EES_Attacking;
 	}
 }
 
@@ -140,9 +155,15 @@ void AEnemyBase::CheckPatrolTarget()
 void AEnemyBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	
-	CheckCombatTarget();
-	CheckPatrolTarget();
+
+	if(EnemyState == EEnemyState::EES_Attacking || EnemyState  == EEnemyState::EES_Chasing)
+	{
+		CheckCombatTarget();
+	}
+	else if (EnemyState == EEnemyState::EES_Patrolling)
+	{
+		CheckPatrolTarget();
+	}
 }
 
 // Called to bind functionality to input
@@ -225,7 +246,6 @@ void AEnemyBase::GetHit_Implementation(const FVector& ImpactPoint)
 		Die();
 	}
 	
-
 	if(IsValid(HitSound))
 	{
 		UGameplayStatics::PlaySoundAtLocation(
@@ -260,7 +280,11 @@ float AEnemyBase::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent
 	{
 		CombatTarget = EventInstigator->GetPawn();
 	}
-	
+
+	EnemyState = EEnemyState::EES_Chasing;
+	MoveToTarget(CombatTarget);
+	GetCharacterMovement()->MaxWalkSpeed = 300.f;
+
 	return DamageAmount;
 }
 
@@ -300,7 +324,20 @@ TObjectPtr<AActor> AEnemyBase::ChoosePatrolTarget()
 
 void AEnemyBase::PawnSeen(APawn* SeenPawn)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Pawn Seen !!!"));
+	if(EnemyState == EEnemyState::EES_Chasing) return;
+	
+	if(IsValid(SeenPawn) && SeenPawn->ActorHasTag(GTag_Player))
+	{
+		GetWorldTimerManager().ClearTimer(PatrolTimer);
+		GetCharacterMovement()->MaxWalkSpeed = 300.f;
+		CombatTarget = SeenPawn;
+
+		if(EnemyState != EEnemyState::EES_Attacking)
+		{
+			EnemyState = EEnemyState::EES_Chasing;
+			MoveToTarget(CombatTarget);
+		}
+	}
 }
 
 void AEnemyBase::MoveToTarget(AActor* InTarget)

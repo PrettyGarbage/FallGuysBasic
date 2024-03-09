@@ -95,9 +95,6 @@ private:
 	UPROPERTY(EditAnywhere, Category="Visual Effects")
 	TObjectPtr<class UParticleSystem> HitParticle;
 
-	UPROPERTY()
-	TObjectPtr<class AActor> CombatTarget;
-
 	//Navigation
 	UPROPERTY()
 	TObjectPtr<class AAIController> AIController;
@@ -109,8 +106,14 @@ private:
 	UPROPERTY(EditInstanceOnly, Category="AI")
 	TArray<TObjectPtr<class AActor>> PatrolTargets;
 
+	UPROPERTY()
+	TObjectPtr<class AActor> CombatTarget;
+	
 	UPROPERTY(EditAnywhere, Category="AI")
-	double DistanceToTarget = 500.0;
+	double CombatRadius = 500.0;
+
+	UPROPERTY(EditAnywhere, Category="AI")
+	double AttackRadius = 150.f;
 
 	UPROPERTY(EditAnywhere, Category="AI")
 	double PatrolRadius = 200.f;
@@ -121,4 +124,6 @@ private:
 	float WaitMin = 5.f;
 	UPROPERTY(EditAnywhere, Category="AI")
 	float WaitMax = 10.f;
+
+	EEnemyState EnemyState = EEnemyState::EES_None;
 };
