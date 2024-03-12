@@ -3,13 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ActionRpgProject/Characters/BaseCharacter.h"
 #include "ActionRpgProject/Characters/CharacterTypes.h"
-#include "ActionRpgProject/Interfaces/HitInterface.h"
-#include "GameFramework/Character.h"
 #include "EnemyBase.generated.h"
 
 UCLASS()
-class STUDYPROJECT_API AEnemyBase : public ACharacter, public IHitInterface
+class STUDYPROJECT_API AEnemyBase : public ABaseCharacter
 {
 	GENERATED_BODY()
 
@@ -22,20 +21,19 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	void DirectionHitReact(const FVector& ImpactPoint);
 
 	virtual void GetHit_Implementation(const FVector& ImpactPoint) override;
 
 	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
+	virtual void Destroyed() override;
+	
 protected: 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	virtual void PlayHitReactMontage(const FName& SectionName);
-
 	UFUNCTION()
-	void Die();
+	virtual void Die() override;
 
 	UFUNCTION()
 	double GetTargetDistance() const;
@@ -51,6 +49,11 @@ protected:
 
 	TObjectPtr<class AActor> ChoosePatrolTarget();
 
+	UFUNCTION()
+	void AIAttack();
+
+	virtual void PlayAttackMontage() override;
+	
 	UFUNCTION()
 	void PawnSeen(APawn* SeenPawn);
 	
@@ -74,26 +77,13 @@ protected:
 private:
 	//Components
 	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<class UAttributeComponent> AttributeComponent;
-
-	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<class UHealthBarComponent> HealthBarWidget;
 
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<class UPawnSensingComponent> PawnSensingComponent;
-	
-	//Montages
-	UPROPERTY(EditAnywhere, Category="Montages")
-	TObjectPtr<class UAnimMontage> HitReactMontage;
 
-	UPROPERTY(EditAnywhere, Category="Montages")
-	TObjectPtr<class UAnimMontage> DeathMontage;
-
-	UPROPERTY(EditAnywhere, Category="Sounds")
-	TObjectPtr<class USoundBase> HitSound;
-
-	UPROPERTY(EditAnywhere, Category="Visual Effects")
-	TObjectPtr<class UParticleSystem> HitParticle;
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<class ASwordWeapon> WeaponClass;
 
 	//Navigation
 	UPROPERTY()
@@ -110,10 +100,10 @@ private:
 	TObjectPtr<class AActor> CombatTarget;
 	
 	UPROPERTY(EditAnywhere, Category="AI")
-	double CombatRadius = 500.0;
+	double CombatRadius = 800.0;
 
 	UPROPERTY(EditAnywhere, Category="AI")
-	double AttackRadius = 150.f;
+	double AttackRadius = 135.f;
 
 	UPROPERTY(EditAnywhere, Category="AI")
 	double PatrolRadius = 200.f;

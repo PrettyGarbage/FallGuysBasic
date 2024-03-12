@@ -11,10 +11,7 @@
 #include "Camera/CameraComponent.h"
 #include "Components/BoxComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "GameFramework/PlayerState.h"
 #include "GameFramework/SpringArmComponent.h"
-#include "Kismet/KismetSystemLibrary.h"
-#include "TPSStudyProject/Game/SPlayerState.h"
 
 
 // Sets default values
@@ -78,15 +75,6 @@ void AActionCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	}
 }
 
-void AActionCharacter::SetWeaponCollisionEnabled(ECollisionEnabled::Type InType)
-{
-	if(IsValid(EquippedWeapon) && IsValid(EquippedWeapon->GetWeaponBox()))
-	{
-		EquippedWeapon->GetWeaponBox()->SetCollisionEnabled(InType);
-		EquippedWeapon->IgnoreActors.Empty();
-	}
-}
-
 void AActionCharacter::Move(const FInputActionValue& InValue)
 {
 	if(CurrentActionState != EActionState::EAS_None) return;
@@ -146,6 +134,8 @@ void AActionCharacter::Equip(const FInputActionValue& InValue)
 
 void AActionCharacter::Attack(const FInputActionValue& InValue)
 {
+	Super::Attack(InValue);
+
 	if(CanAttack())
 	{
 		PlayAttackMontage();
@@ -155,13 +145,14 @@ void AActionCharacter::Attack(const FInputActionValue& InValue)
 
 void AActionCharacter::PlayAttackMontage()
 {
+	Super::PlayAttackMontage();
+	
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	if(IsValid(AnimInstance) && IsValid(AttackMontage))
 	{
 		AnimInstance->Montage_Play(AttackMontage);
 		int32 Selection = FMath::RandRange(0, 3);
-		const FString BaseString = "Attack";
-		FName SectionName = FName(BaseString + FString::FromInt(Selection));
+		FName SectionName = FName(GAttackString + FString::FromInt(Selection));
 
 		AnimInstance->Montage_JumpToSection(SectionName, AttackMontage);
 	}
@@ -177,8 +168,9 @@ void AActionCharacter::PlayEquipMontage(FName SectionName)
 	}
 }
 
-bool AActionCharacter::CanAttack() const
+bool AActionCharacter::CanAttack()
 {
+	Super::CanAttack();
 	return CurrentActionState == EActionState::EAS_None &&
 		CurrentState != ECharacterState::ECS_UnEquipped;
 }

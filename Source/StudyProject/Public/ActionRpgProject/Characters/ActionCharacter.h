@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "BaseCharacter.h"
 #include "CharacterTypes.h"
 #include "InputActionValue.h"
 #include "GameFramework/Character.h"
@@ -10,7 +11,7 @@
 
 
 UCLASS()
-class STUDYPROJECT_API AActionCharacter : public ACharacter
+class STUDYPROJECT_API AActionCharacter : public ABaseCharacter
 {
 	GENERATED_BODY()
 
@@ -24,7 +25,7 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	
-	void SetWeaponCollisionEnabled(ECollisionEnabled::Type InType);
+
 
 	FORCEINLINE void SetOverlappingItem(class AItemBase* InItem) { OverlappingItem = InItem; }
 	FORCEINLINE ECharacterState GetCharacterState() const { return CurrentState; }
@@ -47,13 +48,13 @@ private:
 
 	void Equip(const FInputActionValue& InValue);
 
-	void Attack(const FInputActionValue& InValue);
+	virtual void Attack(const FInputActionValue& InValue) override;
 	
-	void PlayAttackMontage();
+	virtual void PlayAttackMontage() override;
 
 	void PlayEquipMontage(FName SectionName);
 
-	bool CanAttack() const;
+	virtual bool CanAttack() override;
 
 	bool CanDisarm() const;
 
@@ -80,12 +81,6 @@ private:
 
 	UPROPERTY(VisibleInstanceOnly)
 	TObjectPtr<class AItemBase> OverlappingItem;
-
-	UPROPERTY(VisibleAnywhere, Category= "Weapon")
-	TObjectPtr<class ASwordWeapon> EquippedWeapon;
-	
-	UPROPERTY(EditDefaultsOnly, Category = "Montage")
-	TObjectPtr<class UAnimMontage> AttackMontage;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Montage")
 	TObjectPtr<class UAnimMontage> EquipMontage;

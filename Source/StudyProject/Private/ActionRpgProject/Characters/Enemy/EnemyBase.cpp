@@ -7,6 +7,7 @@
 #include "ActionRpgProject/Components/AttributeComponent.h"
 #include "ActionRpgProject/Define/DefineVariables.h"
 #include "ActionRpgProject/HUD/HealthBarComponent.h"
+#include "ActionRpgProject/Items/SwordWeapon.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -26,7 +27,6 @@ AEnemyBase::AEnemyBase()
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 	GetMesh()->SetGenerateOverlapEvents(true);
 
-	AttributeComponent = CreateDefaultSubobject<UAttributeComponent>(TEXT("Attributes"));
 	HealthBarWidget = CreateDefaultSubobject<UHealthBarComponent>(TEXT("HealthBarWidget"));
 	HealthBarWidget->SetupAttachment(GetRootComponent());
 
@@ -61,20 +61,20 @@ void AEnemyBase::BeginPlay()
 	}
 
 	EnemyState = EEnemyState::EES_Patrolling;
-}
 
-void AEnemyBase::PlayHitReactMontage(const FName& SectionName)
-{
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-	if(IsValid(AnimInstance) && IsValid(HitReactMontage))
+	UWorld* World = GetWorld();
+	if(IsValid(World) && IsValid(WeaponClass))
 	{
-		AnimInstance->Montage_Play(HitReactMontage);
-		AnimInstance->Montage_JumpToSection(SectionName, HitReactMontage);
+		ASwordWeapon* DefaultWeapon = World->SpawnActor<ASwordWeapon>(WeaponClass);
+		DefaultWeapon->Equip(GetMesh(), GRightHandSocket, this, this);
+		EquippedWeapon = DefaultWeapon;
 	}
 }
 
 void AEnemyBase::Die()
 {
+	Super::Die();
+	
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	if(IsValid(AnimInstance) && IsValid(DeathMontage))
 	{
@@ -92,7 +92,7 @@ void AEnemyBase::Die()
 
 	EnemyState = EEnemyState::EES_Dead; 
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	SetLifeSpan(3.f);
+	SetLifeSpan(5.f);
 }
 
 double AEnemyBase::GetTargetDistance() const
@@ -138,6 +138,7 @@ void AEnemyBase::CheckCombatTarget()
 	else if (IsTargetInRange(CombatTarget, AttackRadius) && EnemyState != EEnemyState::EES_Attacking)
 	{
 		EnemyState = EEnemyState::EES_Attacking;
+		AIAttack();
 	}
 }
 
@@ -172,62 +173,6 @@ void AEnemyBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 }
 
-void AEnemyBase::DirectionHitReact(const FVector& ImpactPoint)
-{
-	//내적을 이용하여 피격방향을 구한다.
-	const FVector Forward = GetActorForwardVector();
-	//높이에 대한 부분은 무시한다.
-	const FVector ImpactHeight = FVector(ImpactPoint.X, ImpactPoint.Y, GetActorLocation().Z);
-	//normalize를 통해 각도를 구할 수 맞은 방향의 방향 벡터를 구한다.
-	const FVector ToHit = (ImpactHeight - GetActorLocation()).GetSafeNormal();
-	//Forward * ToHit = |Forward| * |ToHit| * cos(각도)
-	//|Forward| = 1, |ToHit| = 1이므로(두 단위벡터가 평행하면 절대값은 1이다) cos(각도) = Forward * ToHit
-	const double CosTheta = FVector::DotProduct(Forward, ToHit);
-	//acos를 통해 각도만 남기도록 한다.
-	double Theta = FMath::Acos(CosTheta);
-	//라디안을 각도로 변환한다.
-	Theta = FMath::RadiansToDegrees(Theta);
-
-	//오른손 법칙을 이용한 보정 코사인 함수가 주기함수라 방향이 잘못나오기도 한다고 함...
-	const FVector Cross = FVector::CrossProduct(Forward, ToHit);
-
-	if(Cross.Z < 0)
-	{
-		Theta *= -1.f;
-	}
-
-	FName SectionName;
-
-	if(Theta >= -45.f && Theta < 45.f)
-	{
-		SectionName = FName("FromFront");
-	}
-	else if(Theta >= -135.f && Theta < -45.f)
-	{
-		SectionName = FName("FromLeft");
-	}
-	else if(Theta >= 45.f && Theta < 135.f)
-	{
-		SectionName = FName("FromRight");
-	}
-	else
-	{
-		SectionName = FName("FromBack");
-	}
-	
-	PlayHitReactMontage(SectionName);
-
-	// 디버그용
-	// UKismetSystemLibrary::DrawDebugArrow(this, GetActorLocation(), GetActorLocation()+ Cross * 100.f,5.f, FColor::Red, 5.f, 1.f);
-	//
-	// if(IsValid(GEngine))
-	// {
-	// 	GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Green, FString::Printf(TEXT("Theta : %f"), Theta));
-	// }
-	//
-	// UKismetSystemLibrary::DrawDebugArrow(this, GetActorLocation(), GetActorLocation()+ Forward * 60.f,5.f, FColor::Red, 5.f, 1.f);
-	// UKismetSystemLibrary::DrawDebugArrow(this, GetActorLocation(), GetActorLocation()+ ToHit * 60.f,5.f, FColor::Red, 5.f, 1.f);
-}
 
 void AEnemyBase::GetHit_Implementation(const FVector& ImpactPoint)
 {
@@ -288,6 +233,16 @@ float AEnemyBase::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent
 	return DamageAmount;
 }
 
+void AEnemyBase::Destroyed()
+{
+	Super::Destroyed();
+
+	if(IsValid(EquippedWeapon))
+	{
+		EquippedWeapon->Destroy();
+	}
+}
+
 EDeathPose AEnemyBase::GetDeathPoseEnumValue(FName InName)
 {
 	if(!DeathPoseMap.Contains(InName))
@@ -322,6 +277,27 @@ TObjectPtr<AActor> AEnemyBase::ChoosePatrolTarget()
 	return nullptr;
 }
 
+void AEnemyBase::AIAttack()
+{
+	PlayAttackMontage();
+}
+
+
+void AEnemyBase::PlayAttackMontage()
+{
+	Super::PlayAttackMontage();
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if(IsValid(AnimInstance) && IsValid(AttackMontage))
+	{
+		AnimInstance->Montage_Play(AttackMontage);
+		int32 Selection = FMath::RandRange(0, 2);
+		FName SectionName = FName(GAttackString + FString::FromInt(Selection));
+
+		AnimInstance->Montage_JumpToSection(SectionName, AttackMontage);
+	}
+}
+
 void AEnemyBase::PawnSeen(APawn* SeenPawn)
 {
 	if(EnemyState == EEnemyState::EES_Chasing) return;
@@ -346,7 +322,7 @@ void AEnemyBase::MoveToTarget(AActor* InTarget)
 	
 	FAIMoveRequest MoveRequest;
 	MoveRequest.SetGoalActor(InTarget);
-	MoveRequest.SetAcceptanceRadius(15.f);
+	MoveRequest.SetAcceptanceRadius(50.f);
 	AIController->MoveTo(MoveRequest);
 }
 
