@@ -26,6 +26,35 @@ void ABaseCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
+void ABaseCharacter::SetWeaponCollisionEnabled(ECollisionEnabled::Type InType)
+{
+	if(IsValid(EquippedWeapon) && IsValid(EquippedWeapon->GetWeaponBox()))
+	{
+		EquippedWeapon->GetWeaponBox()->SetCollisionEnabled(InType);
+		EquippedWeapon->IgnoreActors.Empty();
+	}
+}
+
+void ABaseCharacter::SetActionState(EActionState InState)
+{
+	CurrentActionState = InState;
+}
+
+void ABaseCharacter::WarpToTarget()
+{
+	if(!IsValid(MotionWarpComponent)) return;
+
+	ABaseCharacter* TargetActor = Cast<ABaseCharacter>(CombatTarget);
+	if(IsValid(CombatTarget) && IsValid(TargetActor))
+	{
+		MotionWarpComponent->AddOrUpdateWarpTargetFromLocation(
+			GTranslationTarget,
+			TargetActor->GetTranslationWarpTarget(TargetActor));
+	}
+}
+
+
+
 void ABaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
@@ -210,11 +239,8 @@ bool ABaseCharacter::CanAttack()
 
 FVector ABaseCharacter::GetTranslationWarpTarget(ABaseCharacter* InTarget)
 {
-	if(!IsValid(InTarget))
-	{
-		UKismetSystemLibrary::PrintString(GetWorld(), "Combat Target is Null");
-		return FVector();
-	}
+	if(!IsValid(InTarget)) return FVector();
+
 	const FVector CombatTargetLocation = InTarget->GetActorLocation();
 	const FVector Location = GetActorLocation();
 
@@ -223,36 +249,11 @@ FVector ABaseCharacter::GetTranslationWarpTarget(ABaseCharacter* InTarget)
 	TargetToMe *= WarpTargetDistance;
 
 	//Debug
-	UKismetSystemLibrary::PrintString(GetWorld(), "gogogo");
 	DrawDebugSphere(GetWorld(), CombatTargetLocation + TargetToMe, 10.f, 12, FColor::Red, false, 0.1f);
 
 	return CombatTargetLocation + TargetToMe;
 }
 
-void ABaseCharacter::WarpToTarget()
-{
-	if(!IsValid(MotionWarpComponent)) return;
 
-	ABaseCharacter* TargetActor = Cast<ABaseCharacter>(CombatTarget);
-	if(IsValid(CombatTarget) && IsValid(TargetActor))
-	{
-		MotionWarpComponent->AddOrUpdateWarpTargetFromLocation(
-			GTranslationTarget,
-			TargetActor->GetTranslationWarpTarget(TargetActor));
-	}
-}
 
-void ABaseCharacter::SetWeaponCollisionEnabled(ECollisionEnabled::Type InType)
-{
-	if(IsValid(EquippedWeapon) && IsValid(EquippedWeapon->GetWeaponBox()))
-	{
-		EquippedWeapon->GetWeaponBox()->SetCollisionEnabled(InType);
-		EquippedWeapon->IgnoreActors.Empty();
-	}
-}
-
-void ABaseCharacter::SetActionState(EActionState InState)
-{
-	CurrentActionState = InState;
-}
 

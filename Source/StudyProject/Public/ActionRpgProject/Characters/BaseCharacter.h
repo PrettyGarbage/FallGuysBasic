@@ -66,6 +66,7 @@ protected:
 
 	UFUNCTION()
 	FVector GetTranslationWarpTarget(ABaseCharacter* InTarget);
+
 	
 protected:
 	
@@ -88,10 +89,10 @@ protected:
 	TArray<FName> DeathMontageSections;
 	
 	/* Components */
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category= "Components", meta=(AllowPrivateAccess="true"))
 	TObjectPtr<class UAttributeComponent> AttributeComponent;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category= "Components", meta=(AllowPrivateAccess="true"))
 	TObjectPtr<class UMotionWarpingComponent> MotionWarpComponent;
 
 	/* Sounds and Visual Effects */
