@@ -6,7 +6,6 @@
 #include "BaseCharacter.h"
 #include "CharacterTypes.h"
 #include "InputActionValue.h"
-#include "GameFramework/Character.h"
 #include "ActionCharacter.generated.h"
 
 
@@ -19,22 +18,18 @@ public:
 	// Sets default values for this character's properties
 	AActionCharacter();
 
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	virtual void GetHit_Implementation(const FVector& ImpactPoint, AActor* Hitter) override;
 	
-
-
 	FORCEINLINE void SetOverlappingItem(class AItemBase* InItem) { OverlappingItem = InItem; }
 	FORCEINLINE ECharacterState GetCharacterState() const { return CurrentState; }
-	FORCEINLINE void SetCharacterActionState(EActionState InState) { CurrentActionState = InState; }
-	
 
-	//Animation Notify Bind Functions
-	void Disarm();
-	void Arm();
+	//Weapon
+	void EquipWeapon(ASwordWeapon* OverlappingSword);
+	
+	void AttachWeaponToBack();
+	void AttachWeaponToHand();
 	void FinishEquipping();
 	
 protected:
@@ -49,8 +44,6 @@ private:
 	void Equip(const FInputActionValue& InValue);
 
 	virtual void Attack(const FInputActionValue& InValue) override;
-	
-	virtual void PlayAttackMontage() override;
 
 	void PlayEquipMontage(FName SectionName);
 
@@ -59,13 +52,14 @@ private:
 	bool CanDisarm() const;
 
 	bool CanArm() const;
+
+	void Arm();
+
+	void Disarm();
 	
 	
 private:
 	ECharacterState CurrentState = ECharacterState::ECS_UnEquipped;
-
-	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = true))
-	EActionState CurrentActionState = EActionState::EAS_None;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess=true))
 	TObjectPtr<class UInputConfigDatas> InputConfigData;

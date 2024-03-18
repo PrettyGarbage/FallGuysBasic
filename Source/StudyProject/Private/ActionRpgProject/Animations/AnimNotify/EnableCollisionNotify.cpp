@@ -12,7 +12,7 @@ void UEnableCollisionNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSeque
 
 	if(IsValid(MeshComp))
 	{
-		AActionCharacter* BindCharacter = Cast<AActionCharacter>(MeshComp->GetOwner());
+		ABaseCharacter* BindCharacter = Cast<ABaseCharacter>(MeshComp->GetOwner());
 		if(IsValid(BindCharacter))
 		{
 			BindCharacter->SetWeaponCollisionEnabled(ECollisionEnabled::QueryOnly);

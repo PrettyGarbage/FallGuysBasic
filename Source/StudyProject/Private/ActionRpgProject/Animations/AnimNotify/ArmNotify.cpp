@@ -15,7 +15,7 @@ void UArmNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Ani
 		AActionCharacter* ActionCharacter = Cast<AActionCharacter>(MeshComp->GetOwner());
 		if(IsValid(ActionCharacter))
 		{
-			ActionCharacter->Arm();
+			ActionCharacter->AttachWeaponToHand();
 		}
 	}
 	

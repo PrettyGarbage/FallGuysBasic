@@ -21,7 +21,7 @@
 				"CoreUObject",
 				"UMG",
 				"AIModule",
-				"StudyProjectSettings",
+				"StudyProjectSettings"
 			]
 		}
 	],
@@ -35,6 +35,10 @@
 		},
 		{
 			"Name": "EnhancedInput",
+			"Enabled": true
+		},
+		{
+			"Name": "MotionWarping",
 			"Enabled": true
 		}
 	]

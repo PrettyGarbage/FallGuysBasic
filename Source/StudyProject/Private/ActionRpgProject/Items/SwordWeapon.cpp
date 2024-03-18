@@ -8,6 +8,7 @@
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "NiagaraComponent.h"
+#include "ActionRpgProject/Define/DefineVariables.h"
 
 
 // Sets default values
@@ -26,32 +27,44 @@ ASwordWeapon::ASwordWeapon()
 	BoxTraceEnd->SetupAttachment(GetRootComponent());
 }
 
-void ASwordWeapon::Equip(USceneComponent* InParent, FName InSocketName, AActor* InActor, APawn* InInstigator)
+void ASwordWeapon::PlayEquipSound()
 {
-	SetOwner(InActor);
-	SetInstigator(InInstigator);
-	
-	AttachMeshToSocket(InParent, InSocketName);
-	ItemState = EItemState::EIS_Equipped;
-
 	if(IsValid(EquipSound))
 	{
 		UGameplayStatics::PlaySoundAtLocation(
 			this,
 			EquipSound,
 			GetActorLocation()
-			);
+		);
 	}
+}
 
+void ASwordWeapon::DisableSphereCollision()
+{
 	if(IsValid(SphereComponent))
 	{
 		SphereComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
+}
 
+void ASwordWeapon::DeactivateEmbers()
+{
 	if(IsValid(NiagaraComponent))
 	{
 		NiagaraComponent->Deactivate();
 	}
+}
+
+void ASwordWeapon::Equip(USceneComponent* InParent, FName InSocketName, AActor* InActor, APawn* InInstigator)
+{
+	SetOwner(InActor);
+	SetInstigator(InInstigator);
+	AttachMeshToSocket(InParent, InSocketName);
+	ItemState = EItemState::EIS_Equipped;
+
+	PlayEquipSound();
+	DisableSphereCollision();
+	DeactivateEmbers();
 }
 
 void ASwordWeapon::AttachMeshToSocket(USceneComponent* InParent, const FName& InSocketName)
@@ -79,37 +92,30 @@ void ASwordWeapon::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, 
 	Super::OnSphereEndOverlap(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex);
 }
 
-void ASwordWeapon::OnBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void ASwordWeapon::ExecuteGetHit(FHitResult BoxHit)
 {
-	FVector Start = BoxTraceStart->GetComponentLocation();
-	FVector End = BoxTraceEnd->GetComponentLocation();
-	
-	TArray<AActor*> ActorsToIgnore;
-	ActorsToIgnore.Add(this);
-	for(AActor* Actor : IgnoreActors)
+	if(IHitInterface* HitInterface = Cast<IHitInterface>(BoxHit.GetActor()))
 	{
-		ActorsToIgnore.AddUnique(Actor);
+		HitInterface->Execute_GetHit(BoxHit.GetActor(), BoxHit.ImpactPoint, GetOwner());
 	}
+}
+
+bool ASwordWeapon::IsActorSameType(AActor* OtherActor)
+{
+	if(!IsValid(GetOwner()) || !IsValid(OtherActor)) return false;
+
+	return GetOwner()->ActorHasTag(GTag_Enemy) && OtherActor->ActorHasTag(GTag_Enemy);
+}
+
+void ASwordWeapon::OnBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+                                UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if(IsActorSameType(OtherActor) || ItemState != EItemState::EIS_Equipped) return;
 	
 	FHitResult BoxHit;
-	UKismetSystemLibrary::BoxTraceSingle(
-		this,
-		Start,
-		End,
-		FVector(5.f,5.f,5.f),
-		BoxTraceStart->GetComponentRotation(),
-		TraceTypeQuery1,
-		false,
-		ActorsToIgnore,
-		EDrawDebugTrace::None,
-		BoxHit,
-		true
-		);
-
-	if(IsValid(BoxHit.GetActor())
-		&& ItemState == EItemState::EIS_Equipped
-		&& !IgnoreActors.Contains(BoxHit.GetActor()))
+	BoxTrace(BoxHit);
+	
+	if(IsValid(BoxHit.GetActor()) && !IsActorSameType(BoxHit.GetActor()))
 	{
 		UGameplayStatics::ApplyDamage(
 			BoxHit.GetActor(),
@@ -119,15 +125,39 @@ void ASwordWeapon::OnBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor
 			UDamageType::StaticClass()
 			);
 		
-		if(IHitInterface* HitInterface = Cast<IHitInterface>(BoxHit.GetActor()))
-		{
-			HitInterface->Execute_GetHit(BoxHit.GetActor(), BoxHit.ImpactPoint);
-		}
-
-		IgnoreActors.AddUnique(BoxHit.GetActor());
+		ExecuteGetHit(BoxHit);
 
 		CreateFields(BoxHit.ImpactPoint);
 	}
+}
+
+void ASwordWeapon::BoxTrace(FHitResult& BoxHit)
+{
+	FVector Start = BoxTraceStart->GetComponentLocation();
+	FVector End = BoxTraceEnd->GetComponentLocation();
+	
+	TArray<AActor*> ActorsToIgnore;
+	ActorsToIgnore.Add(this);
+	ActorsToIgnore.Add(GetOwner());
+	for(AActor* Actor : IgnoreActors)
+	{
+		ActorsToIgnore.AddUnique(Actor);
+	}
+
+	UKismetSystemLibrary::BoxTraceSingle(
+		this,
+		Start,
+		End,
+		BoxTraceExtent,
+		BoxTraceStart->GetComponentRotation(),
+		TraceTypeQuery1,
+		false,
+		ActorsToIgnore,
+		EDrawDebugTrace::None,
+		BoxHit,
+		true
+		);
+	IgnoreActors.AddUnique(BoxHit.GetActor());
 }
 
 

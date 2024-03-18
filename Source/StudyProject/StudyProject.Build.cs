@@ -29,6 +29,9 @@ public class StudyProject : ModuleRules
 			
 			//Niagara
 			"Niagara",
+			
+			//Motion Warping
+			"MotionWarping",
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[]

@@ -4,8 +4,13 @@
 #include "ActionRpgProject/Characters/BaseCharacter.h"
 
 #include "ActionRpgProject/Components/AttributeComponent.h"
+#include "ActionRpgProject/Define/DefineVariables.h"
 #include "ActionRpgProject/Items/SwordWeapon.h"
 #include "Components/BoxComponent.h"
+#include "Components/CapsuleComponent.h"
+#include "MotionWarpingComponent.h"
+#include "ActionRpgProject/Characters/Enemy/EnemyBase.h"
+#include "Kismet/GameplayStatics.h"
 
 
 ABaseCharacter::ABaseCharacter()
@@ -13,6 +18,7 @@ ABaseCharacter::ABaseCharacter()
 	PrimaryActorTick.bCanEverTick = true;
 
 	AttributeComponent = CreateDefaultSubobject<UAttributeComponent>(TEXT("Attributes"));
+	MotionWarpComponent = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarpComponent"));
 }
 
 void ABaseCharacter::Tick(float DeltaTime)
@@ -24,6 +30,23 @@ void ABaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
+}
+
+void ABaseCharacter::GetHit_Implementation(const FVector& ImpactPoint, AActor* Hitter)
+{
+	IHitInterface::GetHit_Implementation(ImpactPoint, Hitter);
+
+	if(IsAlive() && Hitter)
+	{
+		DirectionHitReact(Hitter->GetActorLocation());
+	}
+	else
+	{
+		Die();
+	}
+
+	PlayHitSound(ImpactPoint);
+	SpawnHitParticle(ImpactPoint);
 }
 
 void ABaseCharacter::Attack(const FInputActionValue& InValue)
@@ -72,42 +95,151 @@ void ABaseCharacter::DirectionHitReact(const FVector& ImpactPoint)
 
 	if(Theta >= -45.f && Theta < 45.f)
 	{
-		SectionName = FName("FromFront");
+		SectionName = GFromFront;
 	}
 	else if(Theta >= -135.f && Theta < -45.f)
 	{
-		SectionName = FName("FromLeft");
+		SectionName = GFromLeft;
 	}
 	else if(Theta >= 45.f && Theta < 135.f)
 	{
-		SectionName = FName("FromRight");
+		SectionName = GFromRight;
 	}
 	else
 	{
-		SectionName = FName("FromBack");
+		SectionName = GFromBack;
 	}
 	
 	PlayHitReactMontage(SectionName);
 
 	// 디버그용
 	// UKismetSystemLibrary::DrawDebugArrow(this, GetActorLocation(), GetActorLocation()+ Cross * 100.f,5.f, FColor::Red, 5.f, 1.f);
-	//
 	// if(IsValid(GEngine))
 	// {
 	// 	GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Green, FString::Printf(TEXT("Theta : %f"), Theta));
 	// }
-	//
 	// UKismetSystemLibrary::DrawDebugArrow(this, GetActorLocation(), GetActorLocation()+ Forward * 60.f,5.f, FColor::Red, 5.f, 1.f);
 	// UKismetSystemLibrary::DrawDebugArrow(this, GetActorLocation(), GetActorLocation()+ ToHit * 60.f,5.f, FColor::Red, 5.f, 1.f);
 }
 
-void ABaseCharacter::PlayAttackMontage()
+void ABaseCharacter::PlayHitSound(const FVector& ImpactPoint)
 {
+	if(IsValid(HitSound))
+	{
+		UGameplayStatics::PlaySoundAtLocation(
+			this,
+			HitSound,
+			ImpactPoint
+		);
+	}
+}
+
+void ABaseCharacter::SpawnHitParticle(const FVector& ImpactPoint)
+{
+	if(HitParticle && GetWorld())
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(
+			GetWorld(),
+			HitParticle,
+			ImpactPoint
+		);
+	}
+}
+
+void ABaseCharacter::HandleDamage(float DamageAmount)
+{
+	if(IsValid(AttributeComponent))
+	{
+		AttributeComponent->ReceiveDamage(DamageAmount);
+	}
+}
+
+void ABaseCharacter::PlayMontageSection(UAnimMontage* Montage, const FName& SectionName)
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if(IsValid(AnimInstance) && IsValid(Montage))
+	{
+		AnimInstance->Montage_Play(Montage);
+		AnimInstance->Montage_JumpToSection(SectionName, Montage);
+	}
+}
+
+int32 ABaseCharacter::PlayAttackMontage()
+{
+	return PlayRandomMontageSection(AttackMontage, AttackMontageSections);
+}
+
+void ABaseCharacter::StopAttackMontage()
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if(AnimInstance)
+	{
+		AnimInstance->Montage_Stop(0.25f, AttackMontage);
+	}
+}
+
+int32 ABaseCharacter::PlayRandomMontageSection(UAnimMontage* Montage, const TArray<FName>& SectionNames)
+{
+	if(SectionNames.Num() <= 0) return -1;
+	const int32 MaxSectionIndex = SectionNames.Num() - 1;
+	const int32 SectionIndex = FMath::RandRange(0, MaxSectionIndex);
+	PlayMontageSection(Montage, SectionNames[SectionIndex]);
+	return SectionIndex;
+}
+
+int32 ABaseCharacter::PlayDeathMontage()
+{
+	return PlayRandomMontageSection(DeathMontage, DeathMontageSections);
+}
+
+void ABaseCharacter::DisableCapsule()
+{
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+}
+
+
+bool ABaseCharacter::IsAlive()
+{
+	return IsValid(AttributeComponent) && AttributeComponent->IsAlive();
 }
 
 bool ABaseCharacter::CanAttack()
 {
 	return false;
+}
+
+FVector ABaseCharacter::GetTranslationWarpTarget(ABaseCharacter* InTarget)
+{
+	if(!IsValid(InTarget))
+	{
+		UKismetSystemLibrary::PrintString(GetWorld(), "Combat Target is Null");
+		return FVector();
+	}
+	const FVector CombatTargetLocation = InTarget->GetActorLocation();
+	const FVector Location = GetActorLocation();
+
+	FVector TargetToMe = (Location - CombatTargetLocation).GetSafeNormal();
+
+	TargetToMe *= WarpTargetDistance;
+
+	//Debug
+	UKismetSystemLibrary::PrintString(GetWorld(), "gogogo");
+	DrawDebugSphere(GetWorld(), CombatTargetLocation + TargetToMe, 10.f, 12, FColor::Red, false, 0.1f);
+
+	return CombatTargetLocation + TargetToMe;
+}
+
+void ABaseCharacter::WarpToTarget()
+{
+	if(!IsValid(MotionWarpComponent)) return;
+
+	ABaseCharacter* TargetActor = Cast<ABaseCharacter>(CombatTarget);
+	if(IsValid(CombatTarget) && IsValid(TargetActor))
+	{
+		MotionWarpComponent->AddOrUpdateWarpTargetFromLocation(
+			GTranslationTarget,
+			TargetActor->GetTranslationWarpTarget(TargetActor));
+	}
 }
 
 void ABaseCharacter::SetWeaponCollisionEnabled(ECollisionEnabled::Type InType)
@@ -117,5 +249,10 @@ void ABaseCharacter::SetWeaponCollisionEnabled(ECollisionEnabled::Type InType)
 		EquippedWeapon->GetWeaponBox()->SetCollisionEnabled(InType);
 		EquippedWeapon->IgnoreActors.Empty();
 	}
+}
+
+void ABaseCharacter::SetActionState(EActionState InState)
+{
+	CurrentActionState = InState;
 }
 

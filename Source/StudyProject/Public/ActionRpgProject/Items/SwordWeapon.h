@@ -14,27 +14,43 @@ class STUDYPROJECT_API ASwordWeapon : public AItemBase
 public:
 	// Sets default values for this actor's properties
 	ASwordWeapon();
+	void PlayEquipSound();
+	void DisableSphereCollision();
+	void DeactivateEmbers();
 	void Equip(USceneComponent* InParent, FName InSocketName, AActor* InActor, APawn* InInstigator);
 	void AttachMeshToSocket(USceneComponent* InParent, const FName& InSocketName);
 
 	FORCEINLINE TObjectPtr<class UBoxComponent> GetWeaponBox() const { return WeaponBox; }
 
-	UPROPERTY()
-	TArray<TObjectPtr<class AActor>> IgnoreActors;
+	
 	
 protected:
 	virtual void BeginPlay() override;
 	
 	virtual void OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) override;
 	virtual void OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex) override;
+	void ExecuteGetHit(FHitResult BoxHit);
+	bool IsActorSameType(AActor* OtherActor);
 
 	UFUNCTION()
 	void OnBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-
+	
 	UFUNCTION(BlueprintImplementableEvent)
 	void CreateFields(const FVector& FieldLocation);
 	
 private:
+	
+	void BoxTrace(FHitResult& BoxHit);
+	
+	
+public:
+	UPROPERTY()
+	TArray<TObjectPtr<class AActor>> IgnoreActors;
+	
+private:
+	UPROPERTY(EditAnywhere, Category="Weapon Properties", meta=(AllowPrivateAccess="true"))
+	FVector BoxTraceExtent = FVector(5.f);
+	
 	UPROPERTY(EditAnywhere, Category="Weapon Properties")
 	TObjectPtr<class USoundBase> EquipSound;
 

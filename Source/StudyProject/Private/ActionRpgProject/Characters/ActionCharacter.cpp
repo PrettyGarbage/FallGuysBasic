@@ -12,6 +12,7 @@
 #include "Components/BoxComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 
 // Sets default values
@@ -34,29 +35,12 @@ AActionCharacter::AActionCharacter()
 
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 400.f, 0.f);
-	
-}
 
-// Called when the game starts or when spawned
-void AActionCharacter::BeginPlay()
-{
-	Super::BeginPlay();
-
-	if(const APlayerController* PlayerController = Cast<APlayerController>(GetController()))
-	{
-		if(UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
-		{
-			Subsystem->AddMappingContext(InputMappingContext, 0);
-		}
-	}
-
-	Tags.Add(GTag_Player);
-}
-
-// Called every frame
-void AActionCharacter::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
+	GetMesh()->SetCollisionObjectType(ECC_WorldDynamic);
+	GetMesh()->SetCollisionResponseToChannels(ECR_Ignore);
+	GetMesh()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
+	GetMesh()->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
+	GetMesh()->SetGenerateOverlapEvents(true);
 }
 
 // Called to bind functionality to input
@@ -73,6 +57,77 @@ void AActionCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		EnhancedInputComponent->BindAction(InputConfigData->EquipAction, ETriggerEvent::Started, this, &AActionCharacter::Equip);
 		EnhancedInputComponent->BindAction(InputConfigData->AttackAction, ETriggerEvent::Triggered, this, &AActionCharacter::Attack);
 	}
+}
+
+void AActionCharacter::GetHit_Implementation(const FVector& ImpactPoint, AActor* Hitter)
+{
+	//Super::GetHit_Implementation(ImpactPoint, Hitter);
+
+	SetActionState(EActionState::EAS_HitReact);
+	
+	if(IsAlive())
+	{
+		PlayHitReactMontage(GFromFront);
+	}
+	else
+	{
+		Die();
+	}
+
+	SetWeaponCollisionEnabled(ECollisionEnabled::NoCollision);
+	PlayHitSound(ImpactPoint);
+	SpawnHitParticle(ImpactPoint);
+}
+
+void AActionCharacter::EquipWeapon(ASwordWeapon* OverlappingSword)
+{
+	OverlappingSword->Equip(GetMesh(), GRightHandSocket, this, this);
+	OverlappingSword->SetOwner(this);
+	OverlappingSword->SetInstigator(this);
+	CurrentState = ECharacterState::ECS_Equipped;
+	OverlappingItem = nullptr;
+	EquippedWeapon = OverlappingSword;
+
+	EquippedWeapon->GetWeaponBox()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	EquippedWeapon->IgnoreActors.Empty();
+}
+
+
+void AActionCharacter::AttachWeaponToBack()
+{
+	if(EquippedWeapon)
+	{
+		EquippedWeapon->AttachMeshToSocket(GetMesh(), GSpineSocket);
+	}
+}
+
+void AActionCharacter::AttachWeaponToHand()
+{
+	if(EquippedWeapon)
+	{
+		EquippedWeapon->AttachMeshToSocket(GetMesh(), GRightHandSocket);
+	}
+}
+
+void AActionCharacter::FinishEquipping()
+{
+	CurrentActionState = EActionState::EAS_None;
+}
+
+// Called when the game starts or when spawned
+void AActionCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if(const APlayerController* PlayerController = Cast<APlayerController>(GetController()))
+	{
+		if(UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
+		{
+			Subsystem->AddMappingContext(InputMappingContext, 0);
+		}
+	}
+
+	Tags.Add(GTag_Player);
 }
 
 void AActionCharacter::Move(const FInputActionValue& InValue)
@@ -105,29 +160,17 @@ void AActionCharacter::Equip(const FInputActionValue& InValue)
 	
 	if(IsValid(OverlappingSword))
 	{
-		OverlappingSword->Equip(GetMesh(), FName("RightHandSocket"), this, this);
-		OverlappingSword->SetOwner(this);
-		OverlappingSword->SetInstigator(this);
-		CurrentState = ECharacterState::ECS_Equipped;
-		OverlappingItem = nullptr;
-		EquippedWeapon = OverlappingSword;
-
-		EquippedWeapon->GetWeaponBox()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		EquippedWeapon->IgnoreActors.Empty();
+		EquipWeapon(OverlappingSword);
 	}
 	else
 	{
 		if(CanDisarm())
 		{
-			PlayEquipMontage(FName("Unequip"));
-			CurrentState = ECharacterState::ECS_UnEquipped;
-			CurrentActionState = EActionState::EAS_Equipping;
+			Disarm();
 		}
 		else if(CanArm())
 		{
-			PlayEquipMontage(FName("Equip"));
-			CurrentState = ECharacterState::ECS_Equipped;
-			CurrentActionState = EActionState::EAS_Equipping;
+			Arm();
 		}
 	}
 }
@@ -140,21 +183,6 @@ void AActionCharacter::Attack(const FInputActionValue& InValue)
 	{
 		PlayAttackMontage();
 		CurrentActionState = EActionState::EAS_Attacking;
-	}
-}
-
-void AActionCharacter::PlayAttackMontage()
-{
-	Super::PlayAttackMontage();
-	
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-	if(IsValid(AnimInstance) && IsValid(AttackMontage))
-	{
-		AnimInstance->Montage_Play(AttackMontage);
-		int32 Selection = FMath::RandRange(0, 3);
-		FName SectionName = FName(GAttackString + FString::FromInt(Selection));
-
-		AnimInstance->Montage_JumpToSection(SectionName, AttackMontage);
 	}
 }
 
@@ -189,26 +217,20 @@ bool AActionCharacter::CanArm() const
 			EquippedWeapon;
 }
 
-void AActionCharacter::Disarm()
-{
-	if(EquippedWeapon)
-	{
-		EquippedWeapon->AttachMeshToSocket(GetMesh(), FName("SpineSocket"));
-	}
-}
-
 void AActionCharacter::Arm()
 {
-	if(EquippedWeapon)
-	{
-		EquippedWeapon->AttachMeshToSocket(GetMesh(), FName("RightHandSocket"));
-	}
+	PlayEquipMontage(GEquipSection);
+	CurrentState = ECharacterState::ECS_Equipped;
+	CurrentActionState = EActionState::EAS_Equipping;
 }
 
-void AActionCharacter::FinishEquipping()
+void AActionCharacter::Disarm()
 {
-	CurrentActionState = EActionState::EAS_None;
+	PlayEquipMontage(GUnEquipSection);
+	CurrentState = ECharacterState::ECS_UnEquipped;
+	CurrentActionState = EActionState::EAS_Equipping;
 }
+
 
 
 

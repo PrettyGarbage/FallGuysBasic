@@ -22,12 +22,14 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	virtual void GetHit_Implementation(const FVector& ImpactPoint) override;
+	virtual void GetHit_Implementation(const FVector& ImpactPoint, AActor* Hitter) override;
 
 	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
 	virtual void Destroyed() override;
-	
+
+	void SetEnemyState(EEnemyState InState);
+
 protected: 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -44,15 +46,16 @@ protected:
 	UFUNCTION()
 	void MoveToTarget(AActor* InTarget);
 
-	UFUNCTION()
-	EDeathPose GetDeathPoseEnumValue(FName InName);
-
 	TObjectPtr<class AActor> ChoosePatrolTarget();
 
 	UFUNCTION()
 	void AIAttack();
 
-	virtual void PlayAttackMontage() override;
+	virtual bool CanAttack() override;
+
+	virtual void HandleDamage(float DamageAmount) override;
+
+	virtual int32 PlayDeathMontage() override;
 	
 	UFUNCTION()
 	void PawnSeen(APawn* SeenPawn);
@@ -61,18 +64,34 @@ private:
 	void PatrolTimerFinished();
 	void CheckCombatTarget();
 	void CheckPatrolTarget();
+
+	/* AI Behavior */
+	void InitializeEnemy();
+	void ShowHealthBarToggle(bool bShow = false);
+	void SetEnemyInterest(AActor* InActor);
+	void StartPatrolling();
+	void ChaseTarget();
+	bool IsOutsideCombatRadius();
+	bool IsOutsideAttackRadius();
+	bool IsInsideAttackRadius();
+	bool IsChasing();
+	bool IsAttacking();
+	bool IsDead();
+	bool IsEngaged();
+
+	/*Combat*/
+	void ClearPatrolTimer();
+	void StartAttackTimer();
+	void ClearAttackTimer();
+
+	void SpawnDefaultWeapon();
 	
 protected:
 	UPROPERTY(BlueprintReadOnly)
-	EDeathPose DeathPose = EDeathPose::EDP_Alive;
+	EDeathPose DeathPose;
 
-	TMap<FName, EDeathPose> DeathPoseMap = {
-		{FName(TEXT("Death1")), EDeathPose::EDP_Death1},
-		{FName(TEXT("Death2")), EDeathPose::EDP_Death2},
-		{FName(TEXT("Death3")), EDeathPose::EDP_Death3},
-		{FName(TEXT("Death4")), EDeathPose::EDP_Death4}
-	};
-
+	UPROPERTY(EditAnywhere, Category="Combat")
+	float DeathLifeSpan = 8.f;
 	
 private:
 	//Components
@@ -84,20 +103,35 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<class ASwordWeapon> WeaponClass;
-
+	
 	//Navigation
 	UPROPERTY()
 	TObjectPtr<class AAIController> AIController;
 
-	//현재 탐색 타겟 액터
+	/* Combat Variables */
+	FTimerHandle AttackTimer;
+
+	UPROPERTY(EditAnywhere, Category="Combat")
+	float AttackMin = 0.2f;
+
+	UPROPERTY(EditAnywhere, Category="Combat")
+	float AttackMax = 0.5f;
+
+	UPROPERTY(EditAnywhere, Category= "Combat")
+	float PatrolSpeed = 125.f;
+
+	UPROPERTY(EditAnywhere, Category= "Combat")
+	float ChasingSpeed = 300.f;
+	
+	UPROPERTY(EditAnywhere, Category="Combat")
+	EEnemyState EnemyState = EEnemyState::EES_None;
+	
+	/* AI Behavior */
 	UPROPERTY(EditInstanceOnly, Category="AI", BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class AActor> PatrolTarget;
 
 	UPROPERTY(EditInstanceOnly, Category="AI")
 	TArray<TObjectPtr<class AActor>> PatrolTargets;
-
-	UPROPERTY()
-	TObjectPtr<class AActor> CombatTarget;
 	
 	UPROPERTY(EditAnywhere, Category="AI")
 	double CombatRadius = 800.0;
@@ -111,9 +145,7 @@ private:
 	FTimerHandle PatrolTimer;
 
 	UPROPERTY(EditAnywhere, Category="AI")
-	float WaitMin = 5.f;
+	float PatrolWaitMin = 5.f;
 	UPROPERTY(EditAnywhere, Category="AI")
-	float WaitMax = 10.f;
-
-	EEnemyState EnemyState = EEnemyState::EES_None;
+	float PatrolWaitMax = 10.f;
 };

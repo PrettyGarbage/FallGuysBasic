@@ -13,10 +13,10 @@ void UAttackEndNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBas
 
 	if(IsValid(MeshComp))
 	{
-		AActionCharacter* BindCharacter = Cast<AActionCharacter>(MeshComp->GetOwner());
+		ABaseCharacter* BindCharacter = Cast<ABaseCharacter>(MeshComp->GetOwner());
 		if(IsValid(BindCharacter))
 		{
-			BindCharacter->SetCharacterActionState(EActionState::EAS_None);
+			BindCharacter->SetActionState(EActionState::EAS_None);
 		}
 	}
 }

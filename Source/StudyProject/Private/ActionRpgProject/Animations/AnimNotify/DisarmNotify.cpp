@@ -15,7 +15,7 @@ void UDisarmNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* 
 		AActionCharacter* BindCharacter = Cast<AActionCharacter>(MeshComp->GetOwner());
 		if(IsValid(BindCharacter))
 		{
-			BindCharacter->Disarm();
+			BindCharacter->AttachWeaponToBack();
 		}
 	}
 }
