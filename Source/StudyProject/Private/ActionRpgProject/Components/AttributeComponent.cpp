@@ -31,12 +31,40 @@ void UAttributeComponent::ReceiveDamage(float InDamage)
 
 float UAttributeComponent::GetHealthPercent() const
 {
-	return Health/MaxHealth;
+	return Health / MaxHealth;
+}
+
+float UAttributeComponent::GetStaminaPercent()
+{
+	return Stamina / MaxStamina;
+}
+
+float UAttributeComponent::GetEXPPercent() const
+{
+	return EXP / MaxEXP;
 }
 
 bool UAttributeComponent::IsAlive()
 {
-	return Health > 0.f;
+	return Health > KINDA_SMALL_NUMBER;
+}
+
+int32 UAttributeComponent::LevelUp()
+{
+	EXP = 0;
+	MaxEXP *= 1.5f;
+	
+	return ++Level;
+}
+
+void UAttributeComponent::UseStamina(float InStamina)
+{
+	Stamina = FMath::Clamp(Stamina - InStamina, 0.f, MaxStamina);
+}
+
+void UAttributeComponent::RestoreStamina(float InDeltaTime)
+{
+	Stamina = FMath::Clamp(Stamina + StaminaRestoreRate * InDeltaTime, 0.f, MaxStamina);
 }
 
 

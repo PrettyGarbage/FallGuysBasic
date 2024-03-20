@@ -15,6 +15,10 @@ public:
 	// Sets default values for this actor's properties
 	ATreasure();
 
+	FORCEINLINE int32 GetGold() const { return GoldAmount; }
+
+	void SpawnPickUpSound();
+
 protected:
 	virtual void OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) override;
 
@@ -23,5 +27,5 @@ private:
 	TObjectPtr<USoundBase> PickSound;
 
 	UPROPERTY(EditAnywhere, Category= "Treasure Properties")
-	int32 GoldMount;
+	int32 GoldAmount;
 };

@@ -80,10 +80,38 @@ void ABaseCharacter::GetHit_Implementation(const FVector& ImpactPoint, AActor* H
 
 void ABaseCharacter::Attack(const FInputActionValue& InValue)
 {
+	if(IsValid(CombatTarget))
+	{
+		ABaseCharacter* TargetActor = Cast<ABaseCharacter>(CombatTarget);
+		if(IsValid(TargetActor))
+		{
+			if(TargetActor->IsAlive())
+			{
+				CombatTarget = nullptr;
+			}
+		}
+	}
+}
+
+void ABaseCharacter::Attack()
+{
+	if(IsValid(CombatTarget))
+	{
+		ABaseCharacter* TargetActor = Cast<ABaseCharacter>(CombatTarget);
+		if(IsValid(TargetActor))
+		{
+			if(TargetActor->IsAlive())
+			{
+				CombatTarget = nullptr;
+			}
+		}
+	}
 }
 
 void ABaseCharacter::Die()
 {
+	SetWeaponCollisionEnabled(ECollisionEnabled::NoCollision);
+	DisableCapsule();
 }
 
 void ABaseCharacter::PlayHitReactMontage(const FName& SectionName)
@@ -186,8 +214,10 @@ void ABaseCharacter::HandleDamage(float DamageAmount)
 void ABaseCharacter::PlayMontageSection(UAnimMontage* Montage, const FName& SectionName)
 {
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	
 	if(IsValid(AnimInstance) && IsValid(Montage))
 	{
+		UKismetSystemLibrary::PrintString(GetWorld(), SectionName.ToString(), true, true, FLinearColor::Red, 5.f);
 		AnimInstance->Montage_Play(Montage);
 		AnimInstance->Montage_JumpToSection(SectionName, Montage);
 	}
@@ -218,6 +248,13 @@ int32 ABaseCharacter::PlayRandomMontageSection(UAnimMontage* Montage, const TArr
 
 int32 ABaseCharacter::PlayDeathMontage()
 {
+	const int32 Selection = PlayRandomMontageSection(DeathMontage, DeathMontageSections);
+	EDeathPose Pose = static_cast<EDeathPose>(Selection);
+	if(Pose < EDeathPose::EDP_MAX)
+	{
+		DeathPose = Pose;
+	}
+	
 	return PlayRandomMontageSection(DeathMontage, DeathMontageSections);
 }
 

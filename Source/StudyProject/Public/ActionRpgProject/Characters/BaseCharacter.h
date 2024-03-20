@@ -27,6 +27,8 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void WarpToTarget();
+
+	FORCEINLINE EDeathPose GetDeathPose() const { return DeathPose; }
 	
 protected:
 	virtual void BeginPlay() override;
@@ -34,6 +36,8 @@ protected:
 	virtual void GetHit_Implementation(const FVector& ImpactPoint, AActor* Hitter) override;
 
 	virtual void Attack(const FInputActionValue& InValue);
+
+	virtual void Attack(); //Enhanced Input Method와 분리하기 위한 오버로딩
 
 	virtual void Die();
 
@@ -87,6 +91,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category="Combat")
 	TArray<FName> DeathMontageSections;
+
+	UPROPERTY(BlueprintReadOnly)
+	EDeathPose DeathPose;
 	
 	/* Components */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category= "Components", meta=(AllowPrivateAccess="true"))

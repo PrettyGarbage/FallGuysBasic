@@ -14,9 +14,12 @@ class STUDYPROJECT_API ABaseHUD : public AHUD
 {
 	GENERATED_BODY()
 
+public:
+	FORCEINLINE TObjectPtr<class UUIOverlay> GetOverlayWidget() const { return OverlayWidget; }
+	
 protected:
 	virtual void BeginPlay() override;
-
+	
 private:
 	UPROPERTY(EditAnywhere, Category="Widget")
 	TSubclassOf<class UUIOverlay> OverlayWidgetClass;

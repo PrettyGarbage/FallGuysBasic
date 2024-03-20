@@ -153,7 +153,7 @@ void ASwordWeapon::BoxTrace(FHitResult& BoxHit)
 		TraceTypeQuery1,
 		false,
 		ActorsToIgnore,
-		EDrawDebugTrace::None,
+		EDrawDebugTrace::ForDuration,
 		BoxHit,
 		true
 		);

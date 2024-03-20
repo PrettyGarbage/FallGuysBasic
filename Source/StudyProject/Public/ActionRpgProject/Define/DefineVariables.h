@@ -10,6 +10,7 @@ static FName GTag_Enemy = "Enemy";
 #pragma region SocketNames
 
 static FName GRightHandSocket = "RightHandSocket";
+static FName GWeaponSocket = "WeaponSocket";
 static FName GSpineSocket = "SpineSocket";
 
 #pragma endregion

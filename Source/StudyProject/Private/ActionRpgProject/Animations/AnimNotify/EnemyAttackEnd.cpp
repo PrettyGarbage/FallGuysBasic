@@ -15,7 +15,7 @@ void UEnemyAttackEnd::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase
 		AEnemyBase* BindCharacter = Cast<AEnemyBase>(MeshComp->GetOwner());
 		if(IsValid(BindCharacter))
 		{
-			BindCharacter->SetEnemyState(EEnemyState::EES_None);
+			BindCharacter->SetEnemyState(EEnemyState::EES_Chasing);
 		}
 	}
 }

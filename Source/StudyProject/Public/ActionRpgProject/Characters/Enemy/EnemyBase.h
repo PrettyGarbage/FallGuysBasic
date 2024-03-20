@@ -49,13 +49,11 @@ protected:
 	TObjectPtr<class AActor> ChoosePatrolTarget();
 
 	UFUNCTION()
-	void AIAttack();
+	void Attack() override;
 
 	virtual bool CanAttack() override;
 
 	virtual void HandleDamage(float DamageAmount) override;
-
-	virtual int32 PlayDeathMontage() override;
 	
 	UFUNCTION()
 	void PawnSeen(APawn* SeenPawn);
@@ -85,11 +83,9 @@ private:
 	void ClearAttackTimer();
 
 	void SpawnDefaultWeapon();
+	void SpawnTreasure();
 	
 protected:
-	UPROPERTY(BlueprintReadOnly)
-	EDeathPose DeathPose;
-
 	UPROPERTY(EditAnywhere, Category="Combat")
 	float DeathLifeSpan = 8.f;
 	
@@ -140,6 +136,9 @@ private:
 	double AttackRadius = 135.f;
 
 	UPROPERTY(EditAnywhere, Category="AI")
+	double AcceptanceRadius = 50.f;
+
+	UPROPERTY(EditAnywhere, Category="AI")
 	double PatrolRadius = 200.f;
 
 	FTimerHandle PatrolTimer;
@@ -148,4 +147,8 @@ private:
 	float PatrolWaitMin = 5.f;
 	UPROPERTY(EditAnywhere, Category="AI")
 	float PatrolWaitMax = 10.f;
+
+	/* Rewards */
+	UPROPERTY(EditAnywhere, Category="Rewards")
+	TSubclassOf<class ATreasure> TreasureClass;
 };

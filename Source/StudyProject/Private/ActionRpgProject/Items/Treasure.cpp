@@ -13,22 +13,28 @@ ATreasure::ATreasure()
 	PrimaryActorTick.bCanEverTick = false;
 }
 
+void ATreasure::SpawnPickUpSound()
+{
+	if(IsValid(PickSound))
+	{
+		UGameplayStatics::PlaySoundAtLocation(
+			this,
+			PickSound,
+			GetActorLocation()
+			);
+	}
+}
+
 void ATreasure::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+                                UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	Super::OnSphereOverlap(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
 
-	AActionCharacter* ActionCharacter = Cast<AActionCharacter>(OtherActor);
-	if(IsValid(ActionCharacter))
+	IPickUpInterface* PickUpInterface = Cast<IPickUpInterface>(OtherActor);
+	if(PickUpInterface)
 	{
-		if(IsValid(PickSound))
-		{
-			UGameplayStatics::PlaySoundAtLocation(
-				this,
-				PickSound,
-				GetActorLocation()
-				);
-		}
+		PickUpInterface->AddGold(this);
+		SpawnPickUpSound();
 		Destroy();
 	}
 }

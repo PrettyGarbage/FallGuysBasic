@@ -6,11 +6,12 @@
 #include "BaseCharacter.h"
 #include "CharacterTypes.h"
 #include "InputActionValue.h"
+#include "ActionRpgProject/Interfaces/PickUpInterface.h"
 #include "ActionCharacter.generated.h"
 
 
 UCLASS()
-class STUDYPROJECT_API AActionCharacter : public ABaseCharacter
+class STUDYPROJECT_API AActionCharacter : public ABaseCharacter, public IPickUpInterface
 {
 	GENERATED_BODY()
 
@@ -22,8 +23,9 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 	virtual void GetHit_Implementation(const FVector& ImpactPoint, AActor* Hitter) override;
+	virtual void SetOverlappingItem(AItemBase* InItem) override;
+	virtual void AddGold(ATreasure* InTreasure) override;
 	
-	FORCEINLINE void SetOverlappingItem(class AItemBase* InItem) { OverlappingItem = InItem; }
 	FORCEINLINE ECharacterState GetCharacterState() const { return CurrentState; }
 
 	//Weapon
@@ -32,12 +34,15 @@ public:
 	void AttachWeaponToBack();
 	void AttachWeaponToHand();
 	void FinishEquipping();
-	
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	virtual void Tick(float DeltaSeconds) override;
+
 private:
+	/* Enhanced Input */ 
 	void Move(const FInputActionValue& InValue);
 
 	void Look(const FInputActionValue& InValue);
@@ -45,6 +50,8 @@ private:
 	void Equip(const FInputActionValue& InValue);
 
 	virtual void Attack(const FInputActionValue& InValue) override;
+
+	virtual void Jump() override;
 
 	void PlayEquipMontage(FName SectionName);
 
@@ -57,7 +64,13 @@ private:
 	void Arm();
 
 	void Disarm();
-	
+
+	virtual void Die() override;
+
+	/* UI */
+	void InitializeOverlay();
+
+	void SetHUDHealth();
 	
 private:
 	ECharacterState CurrentState = ECharacterState::ECS_UnEquipped;
@@ -79,5 +92,7 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Montage")
 	TObjectPtr<class UAnimMontage> EquipMontage;
-	
+
+	UPROPERTY()
+	TObjectPtr<class UUIOverlay> UIOverlay;
 };

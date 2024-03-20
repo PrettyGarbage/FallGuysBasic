@@ -2,10 +2,9 @@
 
 
 #include "ActionRpgProject/Items/ItemBase.h"
-
-#include "ActionRpgProject/Characters/ActionCharacter.h"
 #include "Components/SphereComponent.h"
 #include "NiagaraComponent.h"
+#include "ActionRpgProject/Interfaces/PickUpInterface.h"
 
 
 // Sets default values
@@ -54,10 +53,10 @@ void AItemBase::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	const FString OtherActorName = OtherActor->GetName();
-	AActionCharacter* ActionCharacter = Cast<AActionCharacter>(OtherActor);
-	if(IsValid(ActionCharacter))
+	IPickUpInterface* PickUpInterface = Cast<IPickUpInterface>(OtherActor);
+	if(PickUpInterface)
 	{
-		ActionCharacter->SetOverlappingItem(this);
+		PickUpInterface->SetOverlappingItem(this);
 	}
 }
 
@@ -65,10 +64,10 @@ void AItemBase::OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	const FString OtherActorName = OtherActor->GetName();
-	AActionCharacter* ActionCharacter = Cast<AActionCharacter>(OtherActor);
-	if(IsValid(ActionCharacter))
+	IPickUpInterface* PickUpInterface = Cast<IPickUpInterface>(OtherActor);
+	if(PickUpInterface)
 	{
-		ActionCharacter->SetOverlappingItem(nullptr);
+		PickUpInterface->SetOverlappingItem(nullptr);
 	}
 }
 

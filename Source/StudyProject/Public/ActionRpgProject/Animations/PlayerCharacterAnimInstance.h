@@ -27,12 +27,15 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = CharacterAnimInstance, meta = (AllowPrivateAccess = true))
 	TObjectPtr<class UCharacterMovementComponent> CharacterMovementComponent;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = CharacterAnimInstance, meta = (AllowPrivateAccess = true))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = true))
 	float GroundSpeed;
 	
-	UPROPERTY(BlueprintReadOnly, Category=CharacterAnimInstance, meta=(AllowPrivateAccess = true))
+	UPROPERTY(BlueprintReadOnly, Category = Movement, meta=(AllowPrivateAccess = true))
 	uint8 IsFalling : 1;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Movement | Character State", meta=(AllowPrivateAccess = true))
+	UPROPERTY(BlueprintReadOnly, Category = Movement, meta=(AllowPrivateAccess = true))
 	ECharacterState CharacterState;
+
+	UPROPERTY(BlueprintReadOnly, Category= Movement, meta=(AllowPrivateAccess = true))
+	EDeathPose DeathPose;
 };

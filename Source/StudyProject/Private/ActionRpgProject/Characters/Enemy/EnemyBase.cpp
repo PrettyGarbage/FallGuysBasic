@@ -8,8 +8,10 @@
 #include "ActionRpgProject/Define/DefineVariables.h"
 #include "ActionRpgProject/HUD/HealthBarComponent.h"
 #include "ActionRpgProject/Items/SwordWeapon.h"
+#include "ActionRpgProject/Items/Treasure.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include "Navigation/PathFollowingComponent.h"
 #include "Perception/PawnSensingComponent.h"
 
@@ -44,7 +46,7 @@ void AEnemyBase::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	if(IsDead()) return;
-
+	
 	if(EnemyState == EEnemyState::EES_Attacking || EnemyState  == EEnemyState::EES_Chasing)
 	{
 		CheckCombatTarget();
@@ -129,14 +131,14 @@ void AEnemyBase::BeginPlay()
 void AEnemyBase::Die()
 {
 	Super::Die();
-
-	PlayDeathMontage();
+	
 	EnemyState = EEnemyState::EES_Dead;
 	ShowHealthBarToggle(false);
-	DisableCapsule();
+	PlayDeathMontage();
 	SetLifeSpan(DeathLifeSpan);
 	GetCharacterMovement()->bOrientRotationToMovement = false;
-	SetWeaponCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	SpawnTreasure();
 }
 
 double AEnemyBase::GetTargetDistance() const
@@ -160,7 +162,7 @@ void AEnemyBase::MoveToTarget(AActor* InTarget)
 	
 	FAIMoveRequest MoveRequest;
 	MoveRequest.SetGoalActor(InTarget);
-	MoveRequest.SetAcceptanceRadius(50.f);
+	MoveRequest.SetAcceptanceRadius(AcceptanceRadius);
 	AIController->MoveTo(MoveRequest);
 }
 
@@ -184,10 +186,13 @@ TObjectPtr<AActor> AEnemyBase::ChoosePatrolTarget()
 	return nullptr;
 }
 
-void AEnemyBase::AIAttack()
+void AEnemyBase::Attack()
 {
+	Super::Attack();
+
 	EnemyState = EEnemyState::EES_Engaged;
 	PlayAttackMontage();
+	UKismetSystemLibrary::PrintString(GetWorld(), "Attack", true, true, FLinearColor::Red, 5.f);
 }
 
 bool AEnemyBase::CanAttack()
@@ -208,18 +213,6 @@ void AEnemyBase::HandleDamage(float DamageAmount)
 	{
 		HealthBarWidget->SetHealthPercentage(AttributeComponent->GetHealthPercent());
 	}
-}
-
-int32 AEnemyBase::PlayDeathMontage()
-{
-	const int32 Selection = Super::PlayDeathMontage();
-	EDeathPose Pose = static_cast<EDeathPose>(Selection);
-	if(Pose < EDeathPose::EDP_MAX)
-	{
-		DeathPose = Pose;
-	}
-
-	return Selection;
 }
 
 void AEnemyBase::PawnSeen(APawn* SeenPawn)
@@ -365,7 +358,7 @@ void AEnemyBase::StartAttackTimer()
 {
 	EnemyState = EEnemyState::EES_Attacking;
 	const float AttackTime = FMath::RandRange(AttackMin, AttackMax);
-	GetWorldTimerManager().SetTimer(AttackTimer, this, &AEnemyBase::AIAttack, AttackTime);
+	GetWorldTimerManager().SetTimer(AttackTimer, this, &AEnemyBase::Attack, AttackTime);
 }
 
 void AEnemyBase::ClearAttackTimer()
@@ -379,8 +372,18 @@ void AEnemyBase::SpawnDefaultWeapon()
 	if(IsValid(World) && IsValid(WeaponClass))
 	{
 		ASwordWeapon* DefaultWeapon = World->SpawnActor<ASwordWeapon>(WeaponClass);
-		DefaultWeapon->Equip(GetMesh(), GRightHandSocket, this, this);
+		DefaultWeapon->Equip(GetMesh(), GWeaponSocket, this, this);
 		EquippedWeapon = DefaultWeapon;
+	}
+}
+
+void AEnemyBase::SpawnTreasure()
+{
+	UWorld* World = GetWorld();
+	if(IsValid(World)&& IsValid(TreasureClass))
+	{
+		const FVector SpawnLocation = GetActorLocation() + FVector(0.f, 0.f, 25.f);
+		World->SpawnActor<ATreasure>(TreasureClass, SpawnLocation, GetActorRotation());
 	}
 }
 
