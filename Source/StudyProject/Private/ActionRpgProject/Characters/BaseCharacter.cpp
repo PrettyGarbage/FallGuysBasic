@@ -255,7 +255,7 @@ int32 ABaseCharacter::PlayDeathMontage()
 		DeathPose = Pose;
 	}
 	
-	return PlayRandomMontageSection(DeathMontage, DeathMontageSections);
+	return Selection;
 }
 
 void ABaseCharacter::DisableCapsule()

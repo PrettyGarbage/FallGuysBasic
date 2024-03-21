@@ -119,7 +119,7 @@ private:
 	UPROPERTY(EditAnywhere, Category= "Combat")
 	float ChasingSpeed = 300.f;
 	
-	UPROPERTY(EditAnywhere, Category="Combat")
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category="Combat", meta = (AllowPrivateAccess = "true"))
 	EEnemyState EnemyState = EEnemyState::EES_None;
 	
 	/* AI Behavior */
