@@ -25,6 +25,7 @@ public:
 	virtual void GetHit_Implementation(const FVector& ImpactPoint, AActor* Hitter) override;
 	virtual void SetOverlappingItem(AItemBase* InItem) override;
 	virtual void AddGold(ATreasure* InTreasure) override;
+	virtual int32 PlayAttackMontage() override;
 	
 	FORCEINLINE ECharacterState GetCharacterState() const { return CurrentState; }
 
@@ -34,6 +35,9 @@ public:
 	void AttachWeaponToBack();
 	void AttachWeaponToHand();
 	void FinishEquipping();
+
+	/* Combo */
+	bool CheckCanNextCombo();
 
 protected:
 	// Called when the game starts or when spawned
@@ -71,6 +75,10 @@ private:
 	void InitializeOverlay();
 
 	void SetHUDHealth();
+
+	/* Combo */
+	UFUNCTION()
+	void FinishAttack(UAnimMontage* InAnimMontage, bool bInterrupted);
 	
 private:
 	ECharacterState CurrentState = ECharacterState::ECS_UnEquipped;
@@ -95,4 +103,11 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<class UUIOverlay> UIOverlay;
+
+	/* Combo */
+	UPROPERTY(VisibleAnywhere)
+	int32 AttackComboCount = 0;
+
+	UPROPERTY(VisibleAnywhere)
+	uint8 bIsPressedAttack : 1;
 };

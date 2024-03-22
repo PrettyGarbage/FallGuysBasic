@@ -29,6 +29,7 @@ static FName GFromFront = "FromFront";
 static FName GFromLeft = "FromLeft";
 static FName GFromRight = "FromRight";
 static FName GFromBack = "FromBack";
+static FName GDodge = "Dodge";
 
 #pragma endregion
 
@@ -36,6 +37,14 @@ static FName GFromBack = "FromBack";
 
 static FName GTranslationTarget = "TranslationTarget";
 static FName GRotationTarget = "RotationTarget";
+
+#pragma endregion
+
+#pragma region Use Stamina Value
+
+static float GUseDodgeStamina = 20.f;
+
+static float GUseAttackStamina = 10.f;
 
 #pragma endregion 
 

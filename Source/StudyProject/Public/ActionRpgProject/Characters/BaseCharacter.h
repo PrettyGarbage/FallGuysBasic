@@ -41,7 +41,7 @@ protected:
 
 	virtual void Die();
 
-	/* Attack Montage */
+	/* Montage */
 	virtual void PlayHitReactMontage(const FName& SectionName);
 
 	virtual void DirectionHitReact(const FVector& ImpactPoint);
@@ -61,6 +61,8 @@ protected:
 	virtual int32 PlayRandomMontageSection(UAnimMontage* Montage, const TArray<FName>& SectionNames);
 
 	virtual int32 PlayDeathMontage();
+
+	virtual void PlayDodgeMontage();
 
 	virtual void DisableCapsule();
 	
@@ -85,6 +87,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category="Montages")
 	TObjectPtr<class UAnimMontage> DeathMontage;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Montage")
+	TObjectPtr<class UAnimMontage> DodgeMontage;
 
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	TArray<FName> AttackMontageSections;

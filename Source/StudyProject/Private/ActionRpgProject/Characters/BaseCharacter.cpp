@@ -217,7 +217,6 @@ void ABaseCharacter::PlayMontageSection(UAnimMontage* Montage, const FName& Sect
 	
 	if(IsValid(AnimInstance) && IsValid(Montage))
 	{
-		UKismetSystemLibrary::PrintString(GetWorld(), SectionName.ToString(), true, true, FLinearColor::Red, 5.f);
 		AnimInstance->Montage_Play(Montage);
 		AnimInstance->Montage_JumpToSection(SectionName, Montage);
 	}
@@ -256,6 +255,11 @@ int32 ABaseCharacter::PlayDeathMontage()
 	}
 	
 	return Selection;
+}
+
+void ABaseCharacter::PlayDodgeMontage()
+{
+	PlayMontageSection(DodgeMontage, GDodge);
 }
 
 void ABaseCharacter::DisableCapsule()

@@ -59,7 +59,7 @@ void AActionCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		EnhancedInputComponent->BindAction(InputConfigData->LookAction, ETriggerEvent::Triggered, this, &AActionCharacter::Look);
 		EnhancedInputComponent->BindAction(InputConfigData->JumpAction, ETriggerEvent::Started, this, &AActionCharacter::Jump);
 		EnhancedInputComponent->BindAction(InputConfigData->EquipAction, ETriggerEvent::Started, this, &AActionCharacter::Equip);
-		EnhancedInputComponent->BindAction(InputConfigData->AttackAction, ETriggerEvent::Triggered, this, &AActionCharacter::Attack);
+		EnhancedInputComponent->BindAction(InputConfigData->AttackAction, ETriggerEvent::Started, this, &AActionCharacter::Attack);
 	}
 }
 
@@ -77,6 +77,8 @@ float AActionCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Damag
 void AActionCharacter::GetHit_Implementation(const FVector& ImpactPoint, AActor* Hitter)
 {
 	//Super::GetHit_Implementation(ImpactPoint, Hitter);
+
+	if(CurrentActionState == EActionState::EAS_Dodging) return;
 
 	if(IsValid(AttributeComponent) && AttributeComponent->GetHealthPercent() > KINDA_SMALL_NUMBER)
 	{
@@ -109,6 +111,23 @@ void AActionCharacter::AddGold(ATreasure* InTreasure)
 		AttributeComponent->AddGold(InTreasure->GetGold());
 		UIOverlay->SetGold(AttributeComponent->GetGold());
 	}
+}
+
+int32 AActionCharacter::PlayAttackMontage()
+{
+	if(AttackMontageSections.Num() <= 0) return -1;
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+
+	if(IsValid(AnimInstance) && IsValid(AttackMontage) && AttackMontageSections.Num() > AttackComboCount)
+	{
+		AnimInstance->Montage_Play(AttackMontage);
+		AnimInstance->Montage_JumpToSection(AttackMontageSections[AttackComboCount], AttackMontage);
+		AttackComboCount += 1;
+		bIsPressedAttack = false;
+	}
+	
+	return AttackComboCount;
 }
 
 void AActionCharacter::EquipWeapon(ASwordWeapon* OverlappingSword)
@@ -224,23 +243,35 @@ void AActionCharacter::Attack(const FInputActionValue& InValue)
 {
 	Super::Attack(InValue);
 
-	if(CanAttack())
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if(!IsValid(AnimInstance)) return;
+	
+	if(CanAttack() && AttackComboCount == 0)
 	{
 		PlayAttackMontage();
+		FOnMontageEnded OnMontageEndedDelegate;
+		OnMontageEndedDelegate.BindUObject(this, &AActionCharacter::FinishAttack);
+		AnimInstance->Montage_SetEndDelegate(OnMontageEndedDelegate);
 		CurrentActionState = EActionState::EAS_Attacking;
-		if(IsValid(AttributeComponent) && IsValid(UIOverlay))
-		{
-			AttributeComponent->UseStamina(10);
-		}
+	}
+	else
+	{
+		UKismetSystemLibrary::PrintString(GetWorld(), "Pressed 1!!!");
+		bIsPressedAttack = true;
 	}
 }
 
 void AActionCharacter::Jump()
 {
 	if(!IsAlive()) return;
-	
-	Super::Jump();
-	AttributeComponent->UseStamina(20);
+	//Super::Jump();
+
+	if(IsValid(AttributeComponent))
+	{
+		AttributeComponent->UseStamina(20);
+		CurrentActionState = EActionState::EAS_Dodging;
+		PlayDodgeMontage();
+	}
 }
 
 void AActionCharacter::PlayEquipMontage(FName SectionName)
@@ -319,6 +350,29 @@ void AActionCharacter::SetHUDHealth()
 	{
 		UIOverlay->SetHealthPercent(AttributeComponent->GetHealthPercent());
 	}
+}
+
+void AActionCharacter::FinishAttack(UAnimMontage* InAnimMontage, bool bInterrupted)
+{
+	AttackComboCount = 0;
+	bIsPressedAttack = false;
+}
+
+bool AActionCharacter::CheckCanNextCombo()
+{
+	if(AttackComboCount < AttackMontageSections.Num() && bIsPressedAttack)
+	{
+		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+		if(IsValid(AnimInstance))
+		{
+			AnimInstance->Montage_JumpToSection(AttackMontageSections[AttackComboCount], AttackMontage);
+			AttackComboCount += 1;
+			bIsPressedAttack = false;
+		}
+		return true;
+	}
+
+	return false;
 }
 
 
