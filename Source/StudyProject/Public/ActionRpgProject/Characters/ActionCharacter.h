@@ -57,6 +57,8 @@ private:
 
 	virtual void Jump() override;
 
+	void Dodge();
+
 	void PlayEquipMontage(FName SectionName);
 
 	virtual bool CanAttack() override;

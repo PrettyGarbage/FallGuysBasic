@@ -39,6 +39,11 @@ float UAttributeComponent::GetStaminaPercent()
 	return Stamina / MaxStamina;
 }
 
+float UAttributeComponent::GetStaminaValue() const
+{
+	return Stamina;
+}
+
 float UAttributeComponent::GetEXPPercent() const
 {
 	return EXP / MaxEXP;

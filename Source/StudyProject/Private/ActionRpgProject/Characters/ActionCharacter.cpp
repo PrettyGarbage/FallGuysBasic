@@ -79,14 +79,10 @@ void AActionCharacter::GetHit_Implementation(const FVector& ImpactPoint, AActor*
 	//Super::GetHit_Implementation(ImpactPoint, Hitter);
 
 	if(CurrentActionState == EActionState::EAS_Dodging) return;
-
-	if(IsValid(AttributeComponent) && AttributeComponent->GetHealthPercent() > KINDA_SMALL_NUMBER)
-	{
-		SetActionState(EActionState::EAS_HitReact);
-	}
 	
 	if(IsAlive())
 	{
+		SetActionState(EActionState::EAS_HitReact);
 		PlayHitReactMontage(GFromFront);
 	}
 	else
@@ -163,6 +159,10 @@ void AActionCharacter::AttachWeaponToHand()
 void AActionCharacter::FinishEquipping()
 {
 	CurrentActionState = EActionState::EAS_None;
+	if(IsValid(GetCharacterMovement()))
+	{
+		GetCharacterMovement()->MaxWalkSpeed =600.f;
+	}
 }
 
 // Called when the game starts or when spawned
@@ -196,7 +196,7 @@ void AActionCharacter::Tick(float DeltaSeconds)
 
 void AActionCharacter::Move(const FInputActionValue& InValue)
 {
-	if(CurrentActionState != EActionState::EAS_None) return;
+	// if(CurrentActionState != EActionState::EAS_Dodging) return;
 	
 	FVector2d MovementVector = InValue.Get<FVector2d>();
 
@@ -256,7 +256,6 @@ void AActionCharacter::Attack(const FInputActionValue& InValue)
 	}
 	else
 	{
-		UKismetSystemLibrary::PrintString(GetWorld(), "Pressed 1!!!");
 		bIsPressedAttack = true;
 	}
 }
@@ -266,11 +265,26 @@ void AActionCharacter::Jump()
 	if(!IsAlive()) return;
 	//Super::Jump();
 
+	Dodge();
+}
+
+void AActionCharacter::Dodge()
+{
 	if(IsValid(AttributeComponent))
 	{
-		AttributeComponent->UseStamina(20);
-		CurrentActionState = EActionState::EAS_Dodging;
-		PlayDodgeMontage();
+		if(AttributeComponent->GetStaminaValue() >= 20)
+		{
+			AttributeComponent->UseStamina(20);
+			//캐릭터 스피드 증가
+			GetCharacterMovement()->MaxWalkSpeed = 800.f;
+			CurrentActionState = EActionState::EAS_Dodging;
+			PlayDodgeMontage();
+		}
+		else
+		{
+			//TODO: 스태미나 부족 메시지 출력
+			UKismetSystemLibrary::PrintString(GetWorld(), "Stmina is not enough");
+		}
 	}
 }
 

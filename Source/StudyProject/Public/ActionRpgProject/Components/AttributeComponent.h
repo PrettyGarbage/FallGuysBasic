@@ -23,6 +23,7 @@ public:
 	void ReceiveDamage(float InDamage);
 	float GetHealthPercent() const;
 	float GetStaminaPercent();
+	float GetStaminaValue() const;
 	float GetEXPPercent() const;
 	bool IsAlive();
 	int32 LevelUp();
