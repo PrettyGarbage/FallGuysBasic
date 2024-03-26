@@ -48,3 +48,10 @@ static float GUseAttackStamina = 10.f;
 
 #pragma endregion 
 
+#pragma region BlackboardKeys
+
+static FName GStartPatrolPositionKey = "StartPatrolPosition";
+static FName GEndPatrolPositionKey = "EndPatrolPosition";
+static FName GTargetActorKey = "TargetActor";
+
+#pragma endregion 

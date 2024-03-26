@@ -241,6 +241,7 @@ void AActionCharacter::Equip(const FInputActionValue& InValue)
 
 void AActionCharacter::Attack(const FInputActionValue& InValue)
 {
+	if(!IsAlive()) return;
 	Super::Attack(InValue);
 
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
@@ -276,14 +277,14 @@ void AActionCharacter::Dodge()
 		{
 			AttributeComponent->UseStamina(20);
 			//캐릭터 스피드 증가
-			GetCharacterMovement()->MaxWalkSpeed = 800.f;
+			GetCharacterMovement()->MaxWalkSpeed = 700.f;
 			CurrentActionState = EActionState::EAS_Dodging;
 			PlayDodgeMontage();
 		}
 		else
 		{
 			//TODO: 스태미나 부족 메시지 출력
-			UKismetSystemLibrary::PrintString(GetWorld(), "Stmina is not enough");
+			UKismetSystemLibrary::PrintString(GetWorld(), "Stamina is not enough");
 		}
 	}
 }

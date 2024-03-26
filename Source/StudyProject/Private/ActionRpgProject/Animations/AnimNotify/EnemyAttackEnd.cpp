@@ -3,6 +3,7 @@
 
 #include "ActionRpgProject/Animations/AnimNotify/EnemyAttackEnd.h"
 
+#include "ActionRpgProject/Characters/Enemy/ActionAICharacter.h"
 #include "ActionRpgProject/Characters/Enemy/EnemyBase.h"
 
 void UEnemyAttackEnd::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation,
@@ -16,6 +17,12 @@ void UEnemyAttackEnd::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase
 		if(IsValid(BindCharacter))
 		{
 			BindCharacter->SetEnemyState(EEnemyState::EES_Chasing);
+		}
+
+		AActionAICharacter* AICharacter = Cast<AActionAICharacter>(MeshComp->GetOwner());
+		if(IsValid(AICharacter))
+		{
+			AICharacter->SetHitReactEndState();
 		}
 	}
 }

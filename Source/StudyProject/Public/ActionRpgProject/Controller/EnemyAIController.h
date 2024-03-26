@@ -33,7 +33,13 @@ public:
 
 	float PatrolRepeatInterval = 3.f;
 
-	float PatrolRadius = 500.f;
+	static const float PatrolRadius;
+
+	static const FName StartPatrolPositionKey;
+
+	static const FName EndPatrolPositionKey;
+
+	static const FName TargetActorKey;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="AI Controller", Meta=(AllowPrivateAccess))
 	TObjectPtr<class UBlackboardData> BlackboardDataAsset;

@@ -49,6 +49,11 @@ float UAttributeComponent::GetEXPPercent() const
 	return EXP / MaxEXP;
 }
 
+float UAttributeComponent::GetHealthValue() const
+{
+	return Health;
+}
+
 bool UAttributeComponent::IsAlive()
 {
 	return Health > KINDA_SMALL_NUMBER;

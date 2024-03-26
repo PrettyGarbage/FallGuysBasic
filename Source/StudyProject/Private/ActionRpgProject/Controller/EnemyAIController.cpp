@@ -4,11 +4,16 @@
 #include "ActionRpgProject/Controller/EnemyAIController.h"
 
 #include "NavigationSystem.h"
+#include "ActionRpgProject/Define/DefineVariables.h"
 #include "BehaviorTree/BehaviorTreeComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Blueprint/AIBlueprintHelperLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
 
+const float AEnemyAIController::PatrolRadius = 500.0f;
+const FName AEnemyAIController::StartPatrolPositionKey = GStartPatrolPositionKey;
+const FName AEnemyAIController::EndPatrolPositionKey = GEndPatrolPositionKey;
+const FName AEnemyAIController::TargetActorKey = GTargetActorKey;
 
 // Sets default values
 AEnemyAIController::AEnemyAIController()
@@ -25,7 +30,7 @@ void AEnemyAIController::BeginAI(APawn* InPawn)
 		bool bRunSucceeded = RunBehaviorTree(BehaviorTree);
 		ensure(bRunSucceeded);
 		
-		//BlackboardComponent->SetValueAsVector(StartPatrolPositionKey, InPawn->GetActorLocation());
+		BlackboardComponent->SetValueAsVector(StartPatrolPositionKey, InPawn->GetActorLocation());
 	}
 }
 
@@ -35,7 +40,6 @@ void AEnemyAIController::EndAI()
 	if(IsValid(BehaviorTreeComponent))
 	{
 		BehaviorTreeComponent->StopTree();
-		UKismetSystemLibrary::PrintString(GetWorld(), TEXT("Stop Behaviour Tree"));
 	}
 }
 
@@ -44,14 +48,18 @@ void AEnemyAIController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	GetWorld()->GetTimerManager().SetTimer(PatrolTimerHandle, this, &AEnemyAIController::OnPatrolTimerElapsed, PatrolRepeatInterval, true);
+	APawn* ControlledPawn = GetPawn();
+	if(IsValid(ControlledPawn))
+	{
+		BeginAI(ControlledPawn);
+	}
 }
 
 void AEnemyAIController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
 
-	GetWorld()->GetTimerManager().ClearTimer(PatrolTimerHandle);
+	EndAI();
 }
 
 void AEnemyAIController::OnPatrolTimerElapsed()

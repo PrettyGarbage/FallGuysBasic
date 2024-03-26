@@ -192,7 +192,6 @@ void AEnemyBase::Attack()
 
 	EnemyState = EEnemyState::EES_Engaged;
 	PlayAttackMontage();
-	UKismetSystemLibrary::PrintString(GetWorld(), "Attack", true, true, FLinearColor::Red, 5.f);
 }
 
 bool AEnemyBase::CanAttack()

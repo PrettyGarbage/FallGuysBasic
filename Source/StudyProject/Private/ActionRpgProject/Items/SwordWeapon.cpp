@@ -8,6 +8,7 @@
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "NiagaraComponent.h"
+#include "ActionRpgProject/Characters/ActionCharacter.h"
 #include "ActionRpgProject/Define/DefineVariables.h"
 
 
@@ -114,7 +115,7 @@ void ASwordWeapon::OnBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor
 	
 	FHitResult BoxHit;
 	BoxTrace(BoxHit);
-	
+
 	if(IsValid(BoxHit.GetActor()) && !IsActorSameType(BoxHit.GetActor()))
 	{
 		UGameplayStatics::ApplyDamage(
@@ -153,7 +154,7 @@ void ASwordWeapon::BoxTrace(FHitResult& BoxHit)
 		TraceTypeQuery1,
 		false,
 		ActorsToIgnore,
-		EDrawDebugTrace::None,
+		EDrawDebugTrace::ForOneFrame,
 		BoxHit,
 		true
 		);
