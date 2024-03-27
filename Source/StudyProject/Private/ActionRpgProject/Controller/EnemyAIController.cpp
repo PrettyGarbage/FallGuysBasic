@@ -51,6 +51,7 @@ void AEnemyAIController::BeginPlay()
 	APawn* ControlledPawn = GetPawn();
 	if(IsValid(ControlledPawn))
 	{
+		UKismetSystemLibrary::PrintString(GetWorld(), "Start AI");
 		BeginAI(ControlledPawn);
 	}
 }
