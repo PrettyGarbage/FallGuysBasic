@@ -6,6 +6,7 @@
 #include "ActionRpgProject/Components/AttributeComponent.h"
 #include "ActionRpgProject/Controller/EnemyAIController.h"
 #include "ActionRpgProject/HUD/HealthBarComponent.h"
+#include "Engine/DamageEvents.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 
@@ -96,10 +97,19 @@ void AActionAICharacter::Attack()
 		GetActorLocation(),
 		GetActorLocation() + AttackRange * GetActorForwardVector(),
 		FQuat::Identity,
-		ECC_EngineTraceChannel2,
+		ECC_GameTraceChannel2,
 		FCollisionShape::MakeSphere(AttackRadius),
 		Params);
 
+	if(bResult && IsValid(HitResult.GetActor()))
+	{
+		if(IHitInterface* HitInterface = Cast<IHitInterface>(HitResult.GetActor()))
+		{
+			UKismetSystemLibrary::PrintString(GetWorld(), "Hit!!!");
+			HitInterface->Execute_GetHit(HitResult.GetActor(), HitResult.ImpactPoint, GetOwner());
+		}
+	}
+	
 	if(IsValid(AttackMontage) && AttackMontageSections.Num() > 0)
 	{
 		const int32 SectionIndex = FMath::RandRange(0, AttackMontageSections.Num() - 1);
@@ -135,7 +145,6 @@ void AActionAICharacter::HandleDamage(float DamageAmount)
 void AActionAICharacter::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 {
 	bIsAttacking = false;
-	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 }
 
 void AActionAICharacter::ShowHPbar(bool bShow)

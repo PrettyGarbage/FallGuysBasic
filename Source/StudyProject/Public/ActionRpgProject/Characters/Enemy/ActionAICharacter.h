@@ -25,6 +25,8 @@ public:
 
 	void CallAttackLogic();
 
+	EEnemyState GetEnemyState() const { return EnemyState; }
+
 protected:
 	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
@@ -40,8 +42,10 @@ private:
 
 	void ShowHPbar(bool bShow);
 
+protected:
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category="Combat", meta = (AllowPrivateAccess = "true"))
+	EEnemyState EnemyState = EEnemyState::EES_None;
 	
-private:
 	UPROPERTY(EditAnywhere, Category="AI", Meta=(AllowPrivateAccess))
 	float AttackRange = 200.f;
 
@@ -53,9 +57,6 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="AI", Meta=(AllowPrivateAccess))
 	bool bHitReact = false;
-
-	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category="Combat", meta = (AllowPrivateAccess = "true"))
-	EEnemyState EnemyState = EEnemyState::EES_None;
 	
 	//components
 	UPROPERTY(VisibleAnywhere, meta=(AllowPrivateAccess))

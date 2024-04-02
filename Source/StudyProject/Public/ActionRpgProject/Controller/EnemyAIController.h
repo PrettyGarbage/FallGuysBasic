@@ -40,6 +40,8 @@ public:
 	static const FName EndPatrolPositionKey;
 
 	static const FName TargetActorKey;
+
+	static const FName IsAliveKey;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="AI Controller", Meta=(AllowPrivateAccess))
 	TObjectPtr<class UBlackboardData> BlackboardDataAsset;

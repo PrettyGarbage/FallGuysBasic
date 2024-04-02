@@ -21,8 +21,8 @@ EBTNodeResult::Type UBTTask_TurnToTargetActor::ExecuteTask(UBehaviorTreeComponen
 	if(IsValid(EnemyAIController))
 	{
 		AActionAICharacter* EnemyCharacter = Cast<AActionAICharacter>(EnemyAIController->GetPawn());
-		if(IsValid(EnemyAIController))
-		{
+		if(IsValid(EnemyCharacter))
+		{			
 			if(AActionCharacter* TargetCharacter = Cast<AActionCharacter>(EnemyAIController->GetBlackboardComponent()->GetValueAsObject(AEnemyAIController::TargetActorKey)))
 			{
 				FVector LookAtTarget = TargetCharacter->GetActorLocation();

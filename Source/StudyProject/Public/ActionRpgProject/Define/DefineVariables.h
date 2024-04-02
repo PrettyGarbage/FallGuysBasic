@@ -53,5 +53,6 @@ static float GUseAttackStamina = 10.f;
 static FName GStartPatrolPositionKey = "StartPatrolPosition";
 static FName GEndPatrolPositionKey = "EndPatrolPosition";
 static FName GTargetActorKey = "TargetActor";
+static FName GIsAliveKey = "IsAlive";
 
 #pragma endregion 

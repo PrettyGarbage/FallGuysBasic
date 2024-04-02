@@ -115,9 +115,11 @@ void ASwordWeapon::OnBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor
 	
 	FHitResult BoxHit;
 	BoxTrace(BoxHit);
-
+	
 	if(IsValid(BoxHit.GetActor()) && !IsActorSameType(BoxHit.GetActor()))
 	{
+		UKismetSystemLibrary::PrintString(GetWorld(), BoxHit.GetActor()->GetName());
+		
 		UGameplayStatics::ApplyDamage(
 			BoxHit.GetActor(),
 			Damage,
@@ -154,7 +156,7 @@ void ASwordWeapon::BoxTrace(FHitResult& BoxHit)
 		TraceTypeQuery1,
 		false,
 		ActorsToIgnore,
-		EDrawDebugTrace::ForOneFrame,
+		EDrawDebugTrace::ForDuration,
 		BoxHit,
 		true
 		);

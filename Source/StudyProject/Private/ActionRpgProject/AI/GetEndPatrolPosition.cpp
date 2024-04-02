@@ -46,6 +46,12 @@ EBTNodeResult::Type UGetEndPatrolPosition::ExecuteTask(UBehaviorTreeComponent& O
 		return Result = EBTNodeResult::Failed;
 	}
 
+	if(AICharacter->GetEnemyState() == EEnemyState::EES_Dead)
+	{
+		return Result = EBTNodeResult::Failed;
+	}
+	
+
 	FVector StartPatrolPosition = OwnerComp.GetBlackboardComponent()->GetValueAsVector(AEnemyAIController::StartPatrolPositionKey);
 	FNavLocation EndPatrolLocation;
 	if(Nav->GetRandomPointInNavigableRadius(StartPatrolPosition, AEnemyAIController::PatrolRadius, EndPatrolLocation))

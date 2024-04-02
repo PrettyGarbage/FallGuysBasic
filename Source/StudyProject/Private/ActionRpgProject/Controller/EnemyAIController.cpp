@@ -9,11 +9,13 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Blueprint/AIBlueprintHelperLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Navigation/PathFollowingComponent.h"
 
 const float AEnemyAIController::PatrolRadius = 500.0f;
 const FName AEnemyAIController::StartPatrolPositionKey = GStartPatrolPositionKey;
 const FName AEnemyAIController::EndPatrolPositionKey = GEndPatrolPositionKey;
 const FName AEnemyAIController::TargetActorKey = GTargetActorKey;
+const FName AEnemyAIController::IsAliveKey = GIsAliveKey;
 
 // Sets default values
 AEnemyAIController::AEnemyAIController()
@@ -51,7 +53,6 @@ void AEnemyAIController::BeginPlay()
 	APawn* ControlledPawn = GetPawn();
 	if(IsValid(ControlledPawn))
 	{
-		UKismetSystemLibrary::PrintString(GetWorld(), "Start AI");
 		BeginAI(ControlledPawn);
 	}
 }

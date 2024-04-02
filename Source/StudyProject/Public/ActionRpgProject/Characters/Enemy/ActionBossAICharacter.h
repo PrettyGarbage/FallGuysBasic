@@ -18,4 +18,21 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+private:
+	void InitializePawnSensingComponent();
+
+	UFUNCTION()
+	void OnSeePawn(APawn* Pawn);
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AI")
+	float DetectRange = 3000.f;
+
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<class UPawnSensingComponent> PawnSensingComponent;
+	
+private:
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<class AActor> TargetActor;
 };
