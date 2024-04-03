@@ -15,6 +15,8 @@ public:
 	// Sets default values for this character's properties
 	AActionBossAICharacter();
 
+	void CheckHit();
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -35,4 +37,7 @@ public:
 private:
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<class AActor> TargetActor;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AI", meta=(AllowPrivateAccess="true"))
+	float AttackDamage = 20.f;
 };

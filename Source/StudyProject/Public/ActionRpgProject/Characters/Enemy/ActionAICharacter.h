@@ -42,6 +42,8 @@ private:
 
 	void ShowHPbar(bool bShow);
 
+	void SpawnDefaultWeapon();
+
 protected:
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category="Combat", meta = (AllowPrivateAccess = "true"))
 	EEnemyState EnemyState = EEnemyState::EES_None;
@@ -61,5 +63,9 @@ protected:
 	//components
 	UPROPERTY(VisibleAnywhere, meta=(AllowPrivateAccess))
 	TObjectPtr<class UHealthBarComponent> HealthBarWidget;
+
+private:
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<class ASwordWeapon> WeaponClass;
 	
 };

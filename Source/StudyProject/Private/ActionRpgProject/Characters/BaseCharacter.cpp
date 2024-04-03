@@ -140,7 +140,7 @@ void ABaseCharacter::DirectionHitReact(const FVector& ImpactPoint)
 	//라디안을 각도로 변환한다.
 	Theta = FMath::RadiansToDegrees(Theta);
 
-	//오른손 법칙을 이용한 보정 코사인 함수가 주기함수라 방향이 잘못나오기도 한다고 함...
+	//오른손 법칙을 이용한 보정
 	const FVector Cross = FVector::CrossProduct(Forward, ToHit);
 
 	if(Cross.Z < 0)

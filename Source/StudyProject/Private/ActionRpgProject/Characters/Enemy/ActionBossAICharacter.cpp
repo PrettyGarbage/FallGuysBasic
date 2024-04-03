@@ -10,6 +10,7 @@
 #include "Blueprint/AIBlueprintHelperLibrary.h"
 #include "Engine/DamageEvents.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Perception/PawnSensingComponent.h"
 
@@ -24,6 +25,37 @@ AActionBossAICharacter::AActionBossAICharacter()
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 
 	PawnSensingComponent = CreateDefaultSubobject<UPawnSensingComponent>(TEXT("PawnSensing"));
+}
+
+void AActionBossAICharacter::CheckHit()
+{
+	FHitResult HitResult;
+	FCollisionQueryParams Params(NAME_None, false, this);
+
+	bool bResult = GetWorld()->SweepSingleByChannel(
+		HitResult,
+		GetActorLocation(),
+		GetActorLocation() + AttackRange * GetActorForwardVector(),
+		FQuat::Identity,
+		ECC_GameTraceChannel2,
+		FCollisionShape::MakeSphere(AttackRadius),
+		Params);
+
+	if(bResult && IsValid(HitResult.GetActor()))
+	{
+		if(IHitInterface* HitInterface = Cast<IHitInterface>(HitResult.GetActor()))
+		{
+			HitInterface->Execute_GetHit(HitResult.GetActor(), HitResult.ImpactPoint, GetOwner());
+
+			UGameplayStatics::ApplyDamage(
+			HitResult.GetActor(),
+			AttackDamage,
+			GetInstigator()->GetController(),
+			this,
+			UDamageType::StaticClass()
+			);
+		}
+	}
 }
 
 // Called when the game starts or when spawned

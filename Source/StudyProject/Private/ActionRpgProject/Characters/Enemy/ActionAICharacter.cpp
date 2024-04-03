@@ -5,7 +5,9 @@
 
 #include "ActionRpgProject/Components/AttributeComponent.h"
 #include "ActionRpgProject/Controller/EnemyAIController.h"
+#include "ActionRpgProject/Define/DefineVariables.h"
 #include "ActionRpgProject/HUD/HealthBarComponent.h"
+#include "ActionRpgProject/Items/SwordWeapon.h"
 #include "Engine/DamageEvents.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
@@ -39,6 +41,7 @@ void AActionAICharacter::BeginPlay()
 
 	InitializeAnimMontageEvent();
 	ShowHPbar(false);
+	SpawnDefaultWeapon();
 }
 
 void AActionAICharacter::SetHitReactEndState()
@@ -88,27 +91,6 @@ void AActionAICharacter::Attack()
 	if(bIsAttacking) return;
 	
 	Super::Attack();
-
-	FHitResult HitResult;
-	FCollisionQueryParams Params(NAME_None, false, this);
-
-	bool bResult = GetWorld()->SweepSingleByChannel(
-		HitResult,
-		GetActorLocation(),
-		GetActorLocation() + AttackRange * GetActorForwardVector(),
-		FQuat::Identity,
-		ECC_GameTraceChannel2,
-		FCollisionShape::MakeSphere(AttackRadius),
-		Params);
-
-	if(bResult && IsValid(HitResult.GetActor()))
-	{
-		if(IHitInterface* HitInterface = Cast<IHitInterface>(HitResult.GetActor()))
-		{
-			UKismetSystemLibrary::PrintString(GetWorld(), "Hit!!!");
-			HitInterface->Execute_GetHit(HitResult.GetActor(), HitResult.ImpactPoint, GetOwner());
-		}
-	}
 	
 	if(IsValid(AttackMontage) && AttackMontageSections.Num() > 0)
 	{
@@ -152,6 +134,17 @@ void AActionAICharacter::ShowHPbar(bool bShow)
 	if(IsValid(HealthBarWidget))
 	{
 		HealthBarWidget->SetVisibility(bShow);
+	}
+}
+
+void AActionAICharacter::SpawnDefaultWeapon()
+{
+	UWorld* World = GetWorld();
+	if(IsValid(World) && IsValid(WeaponClass))
+	{
+		ASwordWeapon* DefaultWeapon = World->SpawnActor<ASwordWeapon>(WeaponClass);
+		DefaultWeapon->Equip(GetMesh(), GWeaponSocket, this, this);
+		EquippedWeapon = DefaultWeapon;
 	}
 }
 
