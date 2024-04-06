@@ -25,6 +25,8 @@ public:
 	virtual void GetHit_Implementation(const FVector& ImpactPoint, AActor* Hitter) override;
 	virtual void SetOverlappingItem(AItemBase* InItem) override;
 	virtual void AddGold(ATreasure* InTreasure) override;
+	UFUNCTION(BlueprintCallable)
+	void AddGold(int32 InGold);
 	virtual int32 PlayAttackMontage() override;
 	
 	FORCEINLINE ECharacterState GetCharacterState() const { return CurrentState; }
@@ -57,6 +59,8 @@ private:
 
 	virtual void Jump() override;
 
+	void Inventory(const FInputActionValue& InValue);
+
 	void Dodge();
 
 	void PlayEquipMontage(FName SectionName);
@@ -75,7 +79,7 @@ private:
 
 	/* UI */
 	void InitializeOverlay();
-
+	
 	void SetHUDHealth();
 
 	/* Combo */
@@ -105,6 +109,9 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<class UUIOverlay> UIOverlay;
+
+	UPROPERTY()
+	TObjectPtr<class UUIInventory> UIInventory;
 
 	/* Combo */
 	UPROPERTY(VisibleAnywhere)

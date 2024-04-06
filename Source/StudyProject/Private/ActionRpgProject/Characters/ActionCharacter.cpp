@@ -60,6 +60,7 @@ void AActionCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		EnhancedInputComponent->BindAction(InputConfigData->JumpAction, ETriggerEvent::Started, this, &AActionCharacter::Jump);
 		EnhancedInputComponent->BindAction(InputConfigData->EquipAction, ETriggerEvent::Started, this, &AActionCharacter::Equip);
 		EnhancedInputComponent->BindAction(InputConfigData->AttackAction, ETriggerEvent::Started, this, &AActionCharacter::Attack);
+		EnhancedInputComponent->BindAction(InputConfigData->InventoryAction, ETriggerEvent::Started, this, &AActionCharacter::Inventory);
 	}
 }
 
@@ -106,6 +107,14 @@ void AActionCharacter::AddGold(ATreasure* InTreasure)
 	{
 		AttributeComponent->AddGold(InTreasure->GetGold());
 		UIOverlay->SetGold(AttributeComponent->GetGold());
+	}
+}
+
+void AActionCharacter::AddGold(int32 InGold)
+{
+	if(IsValid(AttributeComponent))
+	{
+		AttributeComponent->AddGold(InGold);
 	}
 }
 
@@ -267,6 +276,18 @@ void AActionCharacter::Jump()
 	//Super::Jump();
 
 	Dodge();
+}
+
+void AActionCharacter::Inventory(const FInputActionValue& InValue)
+{
+	if(const APlayerController* PlayerController = Cast<APlayerController>(GetController()))
+	{
+		ABaseHUD* BaseHUD = Cast<ABaseHUD>(PlayerController->GetHUD());
+		if(IsValid(BaseHUD))
+		{
+			BaseHUD->ToggleInventory();
+		}
+	}
 }
 
 void AActionCharacter::Dodge()

@@ -57,7 +57,7 @@ private:
 	UPROPERTY(VisibleAnywhere, Category="Actor Attributes")
 	float MaxEXP;
 
-	UPROPERTY(VisibleAnywhere, Category="Actor Attributes")
+	UPROPERTY(EditAnywhere, Category="Actor Attributes")
 	int32 Gold;
 
 	UPROPERTY(EditAnywhere, Category="Actor Attributes")
