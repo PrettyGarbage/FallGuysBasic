@@ -6,6 +6,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "ActionRpgProject/Components/AttributeComponent.h"
+#include "ActionRpgProject/Components/InventoryComponent.h"
 #include "ActionRpgProject/Define/DefineVariables.h"
 #include "ActionRpgProject/HUD/BaseHUD.h"
 #include "ActionRpgProject/HUD/UIOverlay.h"
@@ -37,6 +38,8 @@ AActionCharacter::AActionCharacter()
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
 	CameraComponent->SetupAttachment(SpringArmComponent);
 
+	InventoryComponent = CreateDefaultSubobject<UInventoryComponent>(TEXT("Inventory Component"));
+	
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 400.f, 0.f);
 
@@ -280,14 +283,9 @@ void AActionCharacter::Jump()
 
 void AActionCharacter::Inventory(const FInputActionValue& InValue)
 {
-	if(const APlayerController* PlayerController = Cast<APlayerController>(GetController()))
-	{
-		ABaseHUD* BaseHUD = Cast<ABaseHUD>(PlayerController->GetHUD());
-		if(IsValid(BaseHUD))
-		{
-			BaseHUD->ToggleInventory();
-		}
-	}
+	if(!IsValid(InventoryComponent)) return;
+
+	InventoryComponent->ActiveInventoryUI();
 }
 
 void AActionCharacter::Dodge()

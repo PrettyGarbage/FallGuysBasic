@@ -101,6 +101,9 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<class UCameraComponent> CameraComponent;
 
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<class UInventoryComponent> InventoryComponent;
+
 	UPROPERTY(VisibleInstanceOnly)
 	TObjectPtr<class AItemBase> OverlappingItem;
 

@@ -8,20 +8,7 @@
 
 void ABaseHUD::ToggleInventory()
 {
-	if(IsValid(InventoryWidgetClass))
-	{
-		APlayerController* PlayerController = Cast<APlayerController>(GetOwningPlayerController());
-		if(IsValid(PlayerController))
-		{
-			InventoryWidget = CreateWidget<UUIInventory>(PlayerController, InventoryWidgetClass);
-			InventoryWidget->AddToViewport();
-			PlayerController->bShowMouseCursor = true;
-
-			FInputModeUIOnly InputMode;
-			InputMode.SetWidgetToFocus(InventoryWidget->TakeWidget());
-			PlayerController->SetInputMode(InputMode);
-		}
-	}
+	
 }
 
 void ABaseHUD::BeginPlay()

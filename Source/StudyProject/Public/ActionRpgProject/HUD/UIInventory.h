@@ -14,5 +14,20 @@ class STUDYPROJECT_API UUIInventory : public UUserWidget
 {
 	GENERATED_BODY()
 
+public:
+	virtual void NativeConstruct() override;
+	
 	virtual FReply NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent) override;
+
+	void SetMoneyText(int32 Money);
+
+private:
+	void CloseInventory();
+
+private:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Inventory", meta=(AllowPrivateAccess="true"))
+	TObjectPtr<class UAttributeComponent> AttributeComponent;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UTextBlock> MoneyText;
 };
