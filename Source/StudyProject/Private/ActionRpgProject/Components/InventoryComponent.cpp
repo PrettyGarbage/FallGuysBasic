@@ -3,8 +3,10 @@
 
 #include "ActionRpgProject/Components/InventoryComponent.h"
 
+#include "ActionRpgProject/Characters/ActionCharacter.h"
 #include "ActionRpgProject/Components/AttributeComponent.h"
 #include "ActionRpgProject/HUD/UIInventory.h"
+#include "ActionRpgProject/HUD/UserHealthBar.h"
 #include "Blueprint/UserWidget.h"
 #include "Kismet/KismetSystemLibrary.h"
 
@@ -20,13 +22,29 @@ UInventoryComponent::UInventoryComponent()
 }
 
 
+void UInventoryComponent::DecreaseHP()
+{
+	AActionCharacter* ActionCharacter = Cast<AActionCharacter>(GetOwner());
+	if(IsValid(ActionCharacter))
+	{
+		UAttributeComponent* AttributeComponent = ActionCharacter->FindComponentByClass<UAttributeComponent>();
+		if(IsValid(AttributeComponent))
+		{
+			AttributeComponent->ReceiveDamage(.5f);
+			if(IsValid(HealthBarWidget))
+			{
+				HealthBarWidget->UpdateHealthBar();
+			}
+		}
+	}
+}
+
 // Called when the game starts
 void UInventoryComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// ...
-	
+	CreateHealthBar();
 }
 
 void UInventoryComponent::ActiveInventoryUI()
@@ -40,7 +58,6 @@ void UInventoryComponent::ActiveInventoryUI()
 		{
 			OpenInventory(PlayerController);
 		}
-		
 	}
 }
 
@@ -64,6 +81,20 @@ void UInventoryComponent::OpenInventory(APlayerController* PlayerController)
 		if(IsValid(AttributeComp))
 		{
 			InventoryWidget->SetMoneyText(AttributeComp->GetGold());
+		}
+	}
+}
+
+void UInventoryComponent::CreateHealthBar()
+{
+	if(IsValid(HealthBarWidgetClass))
+	{
+		HealthBarWidget = CreateWidget<UUserHealthBar>(GetWorld(), HealthBarWidgetClass);
+		if(IsValid(HealthBarWidget))
+		{
+			HealthBarWidget->SetPositionInViewport(FVector2d(5,5), true);
+			
+			HealthBarWidget->AddToViewport();
 		}
 	}
 }

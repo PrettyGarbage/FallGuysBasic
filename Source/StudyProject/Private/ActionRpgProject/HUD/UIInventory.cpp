@@ -16,7 +16,6 @@ void UUIInventory::NativeConstruct()
 		AttributeComponent = GetOwningPlayer()->GetComponentByClass<UAttributeComponent>();
 		if(IsValid(AttributeComponent))
 		{
-			UKismetSystemLibrary::PrintString(GetWorld(), "AttributeComponent is valid", true, true, FLinearColor::Green, 5.f);
 			MoneyText->SetText(FText::FromString(FString::FromInt(AttributeComponent->GetGold())));
 		}
 	}
@@ -29,7 +28,6 @@ FReply UUIInventory::NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEven
 		AttributeComponent = GetOwningPlayer()->GetComponentByClass<UAttributeComponent>();
 		if(IsValid(AttributeComponent))
 		{
-			UKismetSystemLibrary::PrintString(GetWorld(), "AttributeComponent is valid", true, true, FLinearColor::Green, 5.f);
 			MoneyText->SetText(FText::FromString(FString::FromInt(AttributeComponent->GetGold())));
 		}
 		

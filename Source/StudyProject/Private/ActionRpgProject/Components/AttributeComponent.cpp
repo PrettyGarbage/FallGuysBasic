@@ -54,6 +54,11 @@ float UAttributeComponent::GetHealthValue() const
 	return Health;
 }
 
+float UAttributeComponent::GetMaxHealthValue() const
+{
+	return MaxHealth;
+}
+
 bool UAttributeComponent::IsAlive()
 {
 	return Health > KINDA_SMALL_NUMBER;

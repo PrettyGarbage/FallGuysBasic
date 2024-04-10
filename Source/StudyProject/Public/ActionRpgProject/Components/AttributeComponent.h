@@ -26,6 +26,7 @@ public:
 	float GetStaminaValue() const;
 	float GetEXPPercent() const;
 	float GetHealthValue() const;
+	float GetMaxHealthValue() const;
 	bool IsAlive();
 	int32 LevelUp();
 	void UseStamina(float InStamina);

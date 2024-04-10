@@ -2,3 +2,33 @@
 
 
 #include "ActionRpgProject/HUD/Heart.h"
+
+#include "Components/Image.h"
+
+void UHeart::NativePreConstruct()
+{
+	Super::NativePreConstruct();
+
+}
+
+void UHeart::NativeConstruct()
+{
+	Super::NativeConstruct();
+
+}
+
+void UHeart::SetHealth(float Amount)
+{
+	if (Amount == 1.0f)
+	{
+		HeartImage->SetBrushFromTexture(MaxHeartTexture);
+	}
+	else if (Amount == 0.5f)
+	{
+		HeartImage->SetBrushFromTexture(HalfHeartTexture);
+	}
+	else
+	{
+		HeartImage->SetBrushFromTexture(EmptyHeartTexture);
+	}
+}

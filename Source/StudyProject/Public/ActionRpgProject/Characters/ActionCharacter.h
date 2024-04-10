@@ -82,6 +82,8 @@ private:
 	
 	void SetHUDHealth();
 
+	void SetHealthBarValue();
+
 	/* Combo */
 	UFUNCTION()
 	void FinishAttack(UAnimMontage* InAnimMontage, bool bInterrupted);
@@ -101,7 +103,7 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<class UCameraComponent> CameraComponent;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Inventory, meta=(AllowPrivateAccess=true))
 	TObjectPtr<class UInventoryComponent> InventoryComponent;
 
 	UPROPERTY(VisibleInstanceOnly)

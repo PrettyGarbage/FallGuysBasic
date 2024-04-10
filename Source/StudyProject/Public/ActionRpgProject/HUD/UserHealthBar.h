@@ -13,4 +13,17 @@ UCLASS()
 class STUDYPROJECT_API UUserHealthBar : public UUserWidget
 {
 	GENERATED_BODY()
+
+public:
+	virtual void NativeConstruct() override;
+
+	UFUNCTION(BlueprintCallable)
+	void UpdateHealthBar() const;
+
+private:
+	UPROPERTY(meta=(BindWidget))
+	TObjectPtr<class UWrapBox> HealthBarWrapBox;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Health", meta=(AllowPrivateAccess="true"))
+	TSubclassOf<class UHeart> HeartWidget;
 };

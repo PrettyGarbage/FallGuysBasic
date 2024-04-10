@@ -7,6 +7,7 @@
 #include "InventoryComponent.generated.h"
 
 
+
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class STUDYPROJECT_API UInventoryComponent : public UActorComponent
 {
@@ -21,6 +22,11 @@ public:
 	//Inventory
 	FORCEINLINE TObjectPtr<class UUIInventory> GetInventoryWidget() const { return InventoryWidget; }
 	
+	FORCEINLINE TObjectPtr<class UUserHealthBar> GetHealthBarWidget() const { return HealthBarWidget; }
+
+	UFUNCTION(BlueprintCallable)
+	void DecreaseHP();
+	
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
@@ -28,9 +34,16 @@ protected:
 private:
 	void OpenInventory(APlayerController* PlayerController);
 
+	void CreateHealthBar();
+
 private:
 	UPROPERTY(EditAnywhere, Category="Widget", meta=(AllowPrivateAccess="true"))
 	TSubclassOf<class UUIInventory> InventoryWidgetClass;
 
 	TObjectPtr<class UUIInventory> InventoryWidget;
+
+	UPROPERTY(EditAnywhere, Category="Widget", meta=(AllowPrivateAccess="true"))
+	TSubclassOf<class UUserHealthBar> HealthBarWidgetClass;
+
+	TObjectPtr<class UUserHealthBar> HealthBarWidget;
 };

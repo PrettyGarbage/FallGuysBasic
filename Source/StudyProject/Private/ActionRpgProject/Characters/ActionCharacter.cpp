@@ -10,6 +10,7 @@
 #include "ActionRpgProject/Define/DefineVariables.h"
 #include "ActionRpgProject/HUD/BaseHUD.h"
 #include "ActionRpgProject/HUD/UIOverlay.h"
+#include "ActionRpgProject/HUD/UserHealthBar.h"
 #include "ActionRpgProject/Inputs/InputConfigDatas.h"
 #include "ActionRpgProject/Items/SwordWeapon.h"
 #include "ActionRpgProject/Items/Treasure.h"
@@ -73,7 +74,11 @@ float AActionCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Damag
 	Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 	HandleDamage(DamageAmount);
 
+	//아래로 대체 되어질 예정
 	SetHUDHealth();
+
+	//대체될 코드
+	SetHealthBarValue();
 	
 	return DamageAmount;
 }
@@ -208,7 +213,7 @@ void AActionCharacter::Tick(float DeltaSeconds)
 
 void AActionCharacter::Move(const FInputActionValue& InValue)
 {
-	// if(CurrentActionState != EActionState::EAS_Dodging) return;
+	if(CurrentActionState != EActionState::EAS_None) return;
 	
 	FVector2d MovementVector = InValue.Get<FVector2d>();
 
@@ -383,6 +388,14 @@ void AActionCharacter::SetHUDHealth()
 	if(IsValid(UIOverlay) && IsValid(AttributeComponent))
 	{
 		UIOverlay->SetHealthPercent(AttributeComponent->GetHealthPercent());
+	}
+}
+
+void AActionCharacter::SetHealthBarValue()
+{
+	if(IsValid(InventoryComponent))
+	{
+		InventoryComponent->GetHealthBarWidget()->UpdateHealthBar();
 	}
 }
 
