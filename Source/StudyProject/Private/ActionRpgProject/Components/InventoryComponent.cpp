@@ -16,7 +16,7 @@ UInventoryComponent::UInventoryComponent()
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
-	PrimaryComponentTick.bCanEverTick = false;
+	PrimaryComponentTick.bCanEverTick = true;
 
 	// ...
 }
@@ -45,6 +45,14 @@ void UInventoryComponent::BeginPlay()
 	Super::BeginPlay();
 
 	CreateHealthBar();
+}
+
+void UInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickType,
+	FActorComponentTickFunction* ThisTickFunction)
+{
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	TraceItemToPickUp();
 }
 
 void UInventoryComponent::ActiveInventoryUI()
@@ -97,5 +105,24 @@ void UInventoryComponent::CreateHealthBar()
 			HealthBarWidget->AddToViewport();
 		}
 	}
+}
+
+void UInventoryComponent::TraceItemToPickUp()
+{
+	AActionCharacter* ActionCharacter = Cast<AActionCharacter>(GetOwner());
+	if(IsValid(ActionCharacter))
+	{
+		FVector StartPosition = ActionCharacter->GetActorLocation() - FVector(0, 0, 60.f);
+		FVector EndPosition = StartPosition + ActionCharacter->GetActorForwardVector() * 300.f;
+		TArray<FHitResult> HitRetArray;
+
+		bool bIsHit = UKismetSystemLibrary::SphereTraceMultiByProfile(GetWorld(),
+		StartPosition,
+		EndPosition, 30.f,
+		FName("Item"), false, TArray<AActor*>(),
+		EDrawDebugTrace::ForOneFrame, HitRetArray, true);
+	}
+	
+
 }
 

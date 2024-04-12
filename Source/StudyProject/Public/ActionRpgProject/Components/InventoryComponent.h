@@ -26,15 +26,22 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void DecreaseHP();
+
+	UFUNCTION(BlueprintCallable)
+	void TraceItemToPickUp();
 	
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	
 private:
 	void OpenInventory(APlayerController* PlayerController);
 
 	void CreateHealthBar();
+
+	
 
 private:
 	UPROPERTY(EditAnywhere, Category="Widget", meta=(AllowPrivateAccess="true"))
