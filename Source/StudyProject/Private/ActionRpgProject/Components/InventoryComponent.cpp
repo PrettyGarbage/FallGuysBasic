@@ -78,7 +78,7 @@ FHitResult UInventoryComponent::TraceItemToPickUp()
 	if(IsValid(ActionCharacter))
 	{
 		FVector StartPosition = ActionCharacter->GetActorLocation() - FVector(0, 0, 60.f);
-		FVector EndPosition = StartPosition + ActionCharacter->GetActorForwardVector() * 300.f;
+		FVector EndPosition = StartPosition + ActionCharacter->GetActorForwardVector() * 150.f;
 		TArray<AActor*> ActorsToIgnore;
 		ActorsToIgnore.Add(ActionCharacter);
 
