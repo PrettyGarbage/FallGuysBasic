@@ -28,7 +28,7 @@ public:
 	void DecreaseHP();
 
 	UFUNCTION(BlueprintCallable)
-	void TraceItemToPickUp();
+	FHitResult TraceItemToPickUp();
 	
 protected:
 	// Called when the game starts
@@ -41,7 +41,7 @@ private:
 
 	void CreateHealthBar();
 
-	
+	void CreateInteractWidget();
 
 private:
 	UPROPERTY(EditAnywhere, Category="Widget", meta=(AllowPrivateAccess="true"))
@@ -53,4 +53,10 @@ private:
 	TSubclassOf<class UUserHealthBar> HealthBarWidgetClass;
 
 	TObjectPtr<class UUserHealthBar> HealthBarWidget;
+
+	UPROPERTY(EditAnywhere, Category="Widget", meta=(AllowPrivateAccess="true"))
+	TSubclassOf<class UUserWidget> InteractWidgetClass;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Widget", meta=(AllowPrivateAccess="true"))
+	TObjectPtr<class UUserWidget> InteractWidget;
 };

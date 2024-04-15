@@ -44,7 +44,9 @@ void UInventoryComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	CreateHealthBar();
+	//CreateHealthBar();
+
+	CreateInteractWidget();
 }
 
 void UInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickType,
@@ -67,6 +69,27 @@ void UInventoryComponent::ActiveInventoryUI()
 			OpenInventory(PlayerController);
 		}
 	}
+}
+
+FHitResult UInventoryComponent::TraceItemToPickUp()
+{
+	AActionCharacter* ActionCharacter = Cast<AActionCharacter>(GetOwner());
+	FHitResult HitRetArray;
+	if(IsValid(ActionCharacter))
+	{
+		FVector StartPosition = ActionCharacter->GetActorLocation() - FVector(0, 0, 60.f);
+		FVector EndPosition = StartPosition + ActionCharacter->GetActorForwardVector() * 300.f;
+		TArray<AActor*> ActorsToIgnore;
+		ActorsToIgnore.Add(ActionCharacter);
+
+		bool bIsHit = UKismetSystemLibrary::SphereTraceSingleByProfile(GetWorld(),
+		StartPosition,
+		EndPosition, 30.f,
+		FName("Item"), false, ActorsToIgnore,
+		EDrawDebugTrace::None, HitRetArray, true);
+	}
+
+	return HitRetArray;
 }
 
 void UInventoryComponent::OpenInventory(APlayerController* PlayerController)
@@ -107,22 +130,11 @@ void UInventoryComponent::CreateHealthBar()
 	}
 }
 
-void UInventoryComponent::TraceItemToPickUp()
+void UInventoryComponent::CreateInteractWidget()
 {
-	AActionCharacter* ActionCharacter = Cast<AActionCharacter>(GetOwner());
-	if(IsValid(ActionCharacter))
+	if(IsValid(InteractWidgetClass))
 	{
-		FVector StartPosition = ActionCharacter->GetActorLocation() - FVector(0, 0, 60.f);
-		FVector EndPosition = StartPosition + ActionCharacter->GetActorForwardVector() * 300.f;
-		TArray<FHitResult> HitRetArray;
-
-		bool bIsHit = UKismetSystemLibrary::SphereTraceMultiByProfile(GetWorld(),
-		StartPosition,
-		EndPosition, 30.f,
-		FName("Item"), false, TArray<AActor*>(),
-		EDrawDebugTrace::ForOneFrame, HitRetArray, true);
+		InteractWidget = CreateWidget<UUserWidget>(GetWorld(), InteractWidgetClass);
 	}
-	
-
 }
 

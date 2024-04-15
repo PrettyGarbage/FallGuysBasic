@@ -38,7 +38,6 @@ EBTNodeResult::Type UBTTask_EnemyAttack::ExecuteTask(UBehaviorTreeComponent& Own
 		if(IsValid(EnemyCharacter))
 		{
 			EnemyCharacter->CallAttackLogic();
-			//UKismetSystemLibrary::PrintString(GetWorld(), "Attack");
 		}
 	}
 

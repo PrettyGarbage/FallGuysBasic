@@ -118,7 +118,7 @@ void ASwordWeapon::OnBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor
 	
 	if(IsValid(BoxHit.GetActor()) && !IsActorSameType(BoxHit.GetActor()))
 	{
-		UKismetSystemLibrary::PrintString(GetWorld(), BoxHit.GetActor()->GetName());
+		//UKismetSystemLibrary::PrintString(GetWorld(), BoxHit.GetActor()->GetName());
 		
 		UGameplayStatics::ApplyDamage(
 			BoxHit.GetActor(),

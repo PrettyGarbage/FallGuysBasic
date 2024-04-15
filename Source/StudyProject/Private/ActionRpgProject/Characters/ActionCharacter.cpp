@@ -78,7 +78,7 @@ float AActionCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Damag
 	SetHUDHealth();
 
 	//대체될 코드
-	SetHealthBarValue();
+	//SetHealthBarValue();
 	
 	return DamageAmount;
 }
@@ -176,10 +176,8 @@ void AActionCharacter::AttachWeaponToHand()
 void AActionCharacter::FinishEquipping()
 {
 	CurrentActionState = EActionState::EAS_None;
-	if(IsValid(GetCharacterMovement()))
-	{
-		GetCharacterMovement()->MaxWalkSpeed =600.f;
-	}
+	GetCharacterMovement()->MaxWalkSpeed = 600.f;
+	SetActorEnableCollision(true);
 }
 
 // Called when the game starts or when spawned
@@ -300,8 +298,8 @@ void AActionCharacter::Dodge()
 		if(AttributeComponent->GetStaminaValue() >= 20)
 		{
 			AttributeComponent->UseStamina(20);
-			//캐릭터 스피드 증가
 			GetCharacterMovement()->MaxWalkSpeed = 700.f;
+			//SetActorEnableCollision(false);
 			CurrentActionState = EActionState::EAS_Dodging;
 			PlayDodgeMontage();
 		}

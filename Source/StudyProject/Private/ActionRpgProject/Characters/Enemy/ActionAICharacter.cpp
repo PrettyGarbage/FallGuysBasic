@@ -8,7 +8,6 @@
 #include "ActionRpgProject/Define/DefineVariables.h"
 #include "ActionRpgProject/HUD/HealthBarComponent.h"
 #include "ActionRpgProject/Items/SwordWeapon.h"
-#include "Engine/DamageEvents.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 
@@ -52,6 +51,7 @@ void AActionAICharacter::SetHitReactEndState()
 
 void AActionAICharacter::CallAttackLogic()
 {
+	if(bHitReact)	return;
 	Attack();
 }
 
