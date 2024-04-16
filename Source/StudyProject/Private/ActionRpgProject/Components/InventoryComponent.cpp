@@ -47,6 +47,8 @@ void UInventoryComponent::BeginPlay()
 	//CreateHealthBar();
 
 	CreateInteractWidget();
+
+	CreateInventoryWidget();
 }
 
 void UInventoryComponent::TickComponent(float DeltaTime, ELevelTick TickType,
@@ -94,9 +96,8 @@ FHitResult UInventoryComponent::TraceItemToPickUp()
 
 void UInventoryComponent::OpenInventory(APlayerController* PlayerController)
 {
-	if(IsValid(InventoryWidgetClass) && IsValid(PlayerController))
+	if(IsValid(InventoryWidget) && IsValid(PlayerController))
 	{
-		InventoryWidget = CreateWidget<UUIInventory>(PlayerController, InventoryWidgetClass);
 		InventoryWidget->AddToViewport();
 		PlayerController->bShowMouseCursor = true;
 
@@ -135,6 +136,14 @@ void UInventoryComponent::CreateInteractWidget()
 	if(IsValid(InteractWidgetClass))
 	{
 		InteractWidget = CreateWidget<UUserWidget>(GetWorld(), InteractWidgetClass);
+	}
+}
+
+void UInventoryComponent::CreateInventoryWidget()
+{
+	if(IsValid(InventoryWidgetClass))
+	{
+		InventoryWidget = CreateWidget<UUIInventory>(GetWorld(), InventoryWidgetClass);
 	}
 }
 

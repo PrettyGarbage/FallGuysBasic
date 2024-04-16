@@ -43,10 +43,13 @@ private:
 
 	void CreateInteractWidget();
 
+	void CreateInventoryWidget();
+
 private:
-	UPROPERTY(EditAnywhere, Category="Widget", meta=(AllowPrivateAccess="true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Widget", meta=(AllowPrivateAccess="true"))
 	TSubclassOf<class UUIInventory> InventoryWidgetClass;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Widget", meta=(AllowPrivateAccess="true"))
 	TObjectPtr<class UUIInventory> InventoryWidget;
 
 	UPROPERTY(EditAnywhere, Category="Widget", meta=(AllowPrivateAccess="true"))
