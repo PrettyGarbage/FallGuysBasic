@@ -4,14 +4,9 @@
 #include "ActionRpgProject/Characters/Enemy/ActionBossAICharacter.h"
 
 #include "ActionRpgProject/Characters/ActionCharacter.h"
-#include "ActionRpgProject/Components/AttributeComponent.h"
 #include "ActionRpgProject/Controller/EnemyAIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
-#include "Blueprint/AIBlueprintHelperLibrary.h"
-#include "Engine/DamageEvents.h"
-#include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
-#include "Kismet/KismetSystemLibrary.h"
 #include "Perception/PawnSensingComponent.h"
 
 

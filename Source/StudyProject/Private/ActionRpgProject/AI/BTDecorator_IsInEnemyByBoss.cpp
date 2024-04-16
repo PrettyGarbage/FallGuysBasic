@@ -8,7 +8,7 @@
 #include "ActionRpgProject/Controller/EnemyAIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 
-const float UBTDecorator_IsInEnemyByBoss::AttackRange = 2800.0f;
+const float UBTDecorator_IsInEnemyByBoss::AttackRange = 3000.0f;
 
 UBTDecorator_IsInEnemyByBoss::UBTDecorator_IsInEnemyByBoss()
 {

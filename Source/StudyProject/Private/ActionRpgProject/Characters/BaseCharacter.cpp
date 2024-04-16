@@ -205,7 +205,7 @@ void ABaseCharacter::SpawnHitParticle(const FVector& ImpactPoint)
 
 void ABaseCharacter::HandleDamage(float DamageAmount)
 {
-	if(IsValid(AttributeComponent))
+	if(IsValid(AttributeComponent) && CurrentActionState != EActionState::EAS_Dodging)
 	{
 		AttributeComponent->ReceiveDamage(DamageAmount);
 	}
