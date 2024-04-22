@@ -22,13 +22,21 @@ void UHeart::SetHealth(float Amount)
 	if (Amount == 1.0f)
 	{
 		HeartImage->SetBrushFromTexture(MaxHeartTexture);
+		HeartStatus = EHeartStatus::EHS_Full;
 	}
 	else if (Amount == 0.5f)
 	{
 		HeartImage->SetBrushFromTexture(HalfHeartTexture);
+		HeartStatus = EHeartStatus::EHS_Half;
 	}
 	else
 	{
 		HeartImage->SetBrushFromTexture(EmptyHeartTexture);
+		HeartStatus = EHeartStatus::EHS_None;
 	}
+}
+
+EHeartStatus UHeart::GetHealthStatus()
+{
+	return HeartStatus;
 }

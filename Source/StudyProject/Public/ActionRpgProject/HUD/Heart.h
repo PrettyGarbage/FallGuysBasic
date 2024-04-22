@@ -6,9 +6,15 @@
 #include "Blueprint/UserWidget.h"
 #include "Heart.generated.h"
 
-/**
- * 
- */
+UENUM(BlueprintType)
+enum class EHeartStatus : uint8
+{
+	EHS_None UMETA(DisplayName="None"),
+	EHS_Empty UMETA(DisplayName="Empty"),
+	EHS_Half UMETA(DisplayName="Half"),
+	EHS_Full UMETA(DisplayName="Full")
+};
+
 UCLASS()
 class STUDYPROJECT_API UHeart : public UUserWidget
 {
@@ -19,6 +25,8 @@ public:
 	virtual void NativeConstruct() override;
 
 	void SetHealth(float Amount);
+
+	EHeartStatus GetHealthStatus();
 	
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health", meta = (AllowPrivateAccess = "true"))
@@ -38,4 +46,6 @@ public:
 
 	UPROPERTY(meta=(BindWidget))
 	TObjectPtr<class UImage> HeartImage;
+
+	EHeartStatus HeartStatus = EHeartStatus::EHS_None;
 };

@@ -16,9 +16,11 @@ class STUDYPROJECT_API UUserHealthBar : public UUserWidget
 
 public:
 	virtual void NativeConstruct() override;
-
+	
 	UFUNCTION(BlueprintCallable)
-	void UpdateHealthBar() const;
+	void UpdateHealthBar();
+
+	void AddHealthBar();
 
 private:
 	UPROPERTY(meta=(BindWidget))
@@ -26,4 +28,6 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Health", meta=(AllowPrivateAccess="true"))
 	TSubclassOf<class UHeart> HeartWidget;
+
+	TArray<UHeart*> HeartArray;
 };

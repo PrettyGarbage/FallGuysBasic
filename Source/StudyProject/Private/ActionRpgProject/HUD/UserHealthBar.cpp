@@ -11,15 +11,15 @@
 void UUserHealthBar::NativeConstruct()
 {
 	Super::NativeConstruct();
-
+	
 	UpdateHealthBar();
 }
 
-//개선점이 있을거라고 생각함. 클리어하고 다시 크리에이트하는게 맘에 안듦
-void UUserHealthBar::UpdateHealthBar() const
+//초기화 부분 만들고 기본 위젯 생성후 데이터 기반으로 다시 채워나가는 방식으로 변경
+void UUserHealthBar::UpdateHealthBar()
 {
-	HealthBarWrapBox->ClearChildren();
-
+	if(!IsValid(HealthBarWrapBox)) return;
+	
 	AActionCharacter* ActionCharacter = Cast<AActionCharacter>(GetOwningPlayerPawn());
 	if(IsValid(ActionCharacter))
 	{
@@ -28,22 +28,41 @@ void UUserHealthBar::UpdateHealthBar() const
 		if(IsValid(AttributeComponent))
 		{
 			float CurrentHealth = AttributeComponent->GetHealthValue();
-			for(int32 i = 0; i < AttributeComponent->GetMaxHealthValue(); i++)
+			int32 MaxHealth = AttributeComponent->GetMaxHealthValue();
+			int32 StartIndex = HealthBarWrapBox->GetChildrenCount();
+
+			//만약에 MaxHealth 데이터가 업데이트 되어 증가 된다면 추가해준다.
+			for(int32 i = StartIndex; i < MaxHealth; i++)
 			{
-				UHeart* Heart = CreateWidget<UHeart>(GetWorld(), HeartWidget);
-				
-				if(IsValid(Heart))
+				AddHealthBar();
+			}
+			
+			for(int32 i = 0; i < HeartArray.Num(); i++)
+			{
+				if(IsValid(HeartArray[i]))
 				{
 					const bool bIsHalfHeart = i + 0.5f == CurrentHealth;
 					const bool bIsFullHeart = i < CurrentHealth;
-					Heart->SetHealth(bIsHalfHeart ? 0.5 : bIsFullHeart ? 1 : 0);
-				}
+					EHeartStatus HeartStatus = bIsHalfHeart ? EHeartStatus::EHS_Half :
+						bIsFullHeart? EHeartStatus::EHS_Full : EHeartStatus::EHS_Empty;
 
-				if(IsValid(HealthBarWrapBox))
-				{
-					HealthBarWrapBox->AddChild(Heart);
+					if(HeartArray[i]->GetHealthStatus() == HeartStatus)
+					{
+						continue;
+					}
+					HeartArray[i]->SetHealth(bIsHalfHeart ? 0.5 : bIsFullHeart ? 1 : 0);
 				}
 			}
 		}
+	}
+}
+
+void UUserHealthBar::AddHealthBar()
+{
+	UHeart* Heart = CreateWidget<UHeart>(GetWorld(), HeartWidget);
+	HeartArray.Add(Heart);
+	if(IsValid(HealthBarWrapBox))
+	{
+		HealthBarWrapBox->AddChild(Heart);
 	}
 }
