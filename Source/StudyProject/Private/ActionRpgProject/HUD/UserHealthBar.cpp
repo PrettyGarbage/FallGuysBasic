@@ -15,7 +15,7 @@ void UUserHealthBar::NativeConstruct()
 	UpdateHealthBar();
 }
 
-//초기화 부분 만들고 기본 위젯 생성후 데이터 기반으로 다시 채워나가는 방식으로 변경
+//위젯 생성후 데이터 기반으로 다시 채워나가는 방식으로 변경
 void UUserHealthBar::UpdateHealthBar()
 {
 	if(!IsValid(HealthBarWrapBox)) return;

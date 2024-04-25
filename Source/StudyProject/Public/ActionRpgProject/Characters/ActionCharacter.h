@@ -10,6 +10,7 @@
 #include "ActionCharacter.generated.h"
 
 
+
 UCLASS()
 class STUDYPROJECT_API AActionCharacter : public ABaseCharacter, public IPickUpInterface
 {
@@ -25,9 +26,13 @@ public:
 	virtual void GetHit_Implementation(const FVector& ImpactPoint, AActor* Hitter) override;
 	virtual void SetOverlappingItem(AItemBase* InItem) override;
 	virtual void AddGold(ATreasure* InTreasure) override;
+
 	UFUNCTION(BlueprintCallable)
 	void AddGold(int32 InGold);
+
 	virtual int32 PlayAttackMontage() override;
+
+	//UFUNCTION(BlueprintCallable)
 	
 	FORCEINLINE ECharacterState GetCharacterState() const { return CurrentState; }
 

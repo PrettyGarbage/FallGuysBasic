@@ -21,7 +21,7 @@ UInventoryComponent::UInventoryComponent()
 	// ...
 }
 
-
+//디버그용 함수임
 void UInventoryComponent::DecreaseHP()
 {
 	AActionCharacter* ActionCharacter = Cast<AActionCharacter>(GetOwner());
