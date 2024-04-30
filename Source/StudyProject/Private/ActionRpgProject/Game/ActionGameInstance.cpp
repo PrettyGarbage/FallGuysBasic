@@ -2,3 +2,10 @@
 
 
 #include "ActionRpgProject/Game/ActionGameInstance.h"
+
+void UActionGameInstance::Init()
+{
+	Super::Init();
+}
+
+

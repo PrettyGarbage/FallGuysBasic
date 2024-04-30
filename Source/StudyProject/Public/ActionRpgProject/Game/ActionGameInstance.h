@@ -3,6 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ActionRpgProject/Subsystems/ActorManagerSubsystem.h"
+
 #include "Engine/GameInstance.h"
 #include "ActionGameInstance.generated.h"
 
@@ -13,4 +15,13 @@ UCLASS()
 class STUDYPROJECT_API UActionGameInstance : public UGameInstance
 {
 	GENERATED_BODY()
+
+public:
+	virtual void Init() override;
+	
+	UActorManagerSubsystem* GetActorManagerSubsystem() const { return ActorManagerSubsystem; }
+
+private:
+	UPROPERTY()
+	UActorManagerSubsystem* ActorManagerSubsystem;
 };

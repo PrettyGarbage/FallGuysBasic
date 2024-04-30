@@ -6,8 +6,10 @@
 #include "ActionRpgProject/Components/AttributeComponent.h"
 #include "ActionRpgProject/Controller/EnemyAIController.h"
 #include "ActionRpgProject/Define/DefineVariables.h"
+#include "ActionRpgProject/Game/ActionGameInstance.h"
 #include "ActionRpgProject/HUD/HealthBarComponent.h"
 #include "ActionRpgProject/Items/SwordWeapon.h"
+#include "ActionRpgProject/Subsystems/ActorManagerSubsystem.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 
@@ -22,6 +24,9 @@ AActionAICharacter::AActionAICharacter()
 
 	HealthBarWidget = CreateDefaultSubobject<UHealthBarComponent>(TEXT("HealthBarWidget"));
 	HealthBarWidget->SetupAttachment(GetRootComponent());
+
+	IconWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("IconWidget"));
+	IconWidget->SetupAttachment(GetRootComponent());
 }
 
 void AActionAICharacter::BeginPlay()
@@ -38,8 +43,10 @@ void AActionAICharacter::BeginPlay()
 		GetCharacterMovement()->MaxWalkSpeed = 300.f;
 	}
 
+	InitializeSubsystemData();
 	InitializeAnimMontageEvent();
 	ShowHPbar(false);
+	ShowPivot(false);
 	SpawnDefaultWeapon();
 }
 
@@ -53,6 +60,14 @@ void AActionAICharacter::CallAttackLogic()
 {
 	if(bHitReact)	return;
 	Attack();
+}
+
+void AActionAICharacter::ShowPivot(bool bShow)
+{
+	if(IsValid(IconWidget))
+	{
+		IconWidget->SetVisibility(bShow);
+	}
 }
 
 float AActionAICharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator,
@@ -72,6 +87,21 @@ float AActionAICharacter::TakeDamage(float DamageAmount, FDamageEvent const& Dam
 	}
 	
 	return DamageAmount;
+}
+
+//초기에 스폰되면 ActorManagerSubsystem에 등록
+void AActionAICharacter::InitializeSubsystemData()
+{
+	
+	UActionGameInstance* ActionGameInstance = Cast<UActionGameInstance>(GetGameInstance());
+	if(IsValid(ActionGameInstance))
+	{
+		UActorManagerSubsystem* ActorManagerSubsystem = ActionGameInstance->GetSubsystem<UActorManagerSubsystem>();
+		if(IsValid(ActionGameInstance))
+		{
+			ActorManagerSubsystem->AddEnemy(this);
+		}
+	}
 }
 
 void AActionAICharacter::InitializeAnimMontageEvent()
@@ -118,6 +148,7 @@ void AActionAICharacter::HandleDamage(float DamageAmount)
 				EnemyState = EEnemyState::EES_Dead;
 				PlayDeathMontage();
 				SetLifeSpan(2.f);
+				RemoveFromActorManagerSubsystem();
 			}
 		}
 	}
@@ -145,6 +176,19 @@ void AActionAICharacter::SpawnDefaultWeapon()
 		ASwordWeapon* DefaultWeapon = World->SpawnActor<ASwordWeapon>(WeaponClass);
 		DefaultWeapon->Equip(GetMesh(), GWeaponSocket, this, this);
 		EquippedWeapon = DefaultWeapon;
+	}
+}
+
+void AActionAICharacter::RemoveFromActorManagerSubsystem()
+{
+	UActionGameInstance* ActionGameInstance = Cast<UActionGameInstance>(GetGameInstance());
+	if(ActionGameInstance)
+	{
+		UActorManagerSubsystem* ActorManagerSubsystem = ActionGameInstance->GetSubsystem<UActorManagerSubsystem>();
+		if(IsValid(ActorManagerSubsystem))
+		{
+			ActorManagerSubsystem->RemoveEnemy(this);
+		}
 	}
 }
 

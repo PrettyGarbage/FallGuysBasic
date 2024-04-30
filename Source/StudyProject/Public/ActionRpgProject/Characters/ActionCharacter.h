@@ -7,6 +7,7 @@
 #include "CharacterTypes.h"
 #include "InputActionValue.h"
 #include "ActionRpgProject/Interfaces/PickUpInterface.h"
+#include "ActionRpgProject/Structs/SlotStruct.h"
 #include "ActionCharacter.generated.h"
 
 
@@ -31,10 +32,12 @@ public:
 	void AddGold(int32 InGold);
 
 	virtual int32 PlayAttackMontage() override;
-
-	//UFUNCTION(BlueprintCallable)
 	
 	FORCEINLINE ECharacterState GetCharacterState() const { return CurrentState; }
+	FORCEINLINE FAllItems GetAllItems() const { return AllItems; }
+
+	UFUNCTION(BlueprintCallable)
+	void SetItemInfos(const FAllItems& InAllItems);
 
 	//Weapon
 	void EquipWeapon(ASwordWeapon* OverlappingSword);
@@ -45,6 +48,10 @@ public:
 
 	/* Combo */
 	bool CheckCanNextCombo();
+
+	/* Blueprint native Event*/
+	UFUNCTION(BlueprintImplementableEvent, Category="Blueprint Event")
+	void OnUpdateInventory();
 
 protected:
 	// Called when the game starts or when spawned
@@ -92,6 +99,10 @@ private:
 	/* Combo */
 	UFUNCTION()
 	void FinishAttack(UAnimMontage* InAnimMontage, bool bInterrupted);
+
+	/* Delegate Event */
+	UFUNCTION()
+	void OnLoadInventoryItems(const FAllItems& InAllItems);
 	
 private:
 	ECharacterState CurrentState = ECharacterState::ECS_UnEquipped;
@@ -129,4 +140,7 @@ private:
 
 	UPROPERTY(VisibleAnywhere)
 	uint8 bIsPressedAttack : 1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item", meta = (AllowPrivateAccess = true))
+	FAllItems AllItems;
 };

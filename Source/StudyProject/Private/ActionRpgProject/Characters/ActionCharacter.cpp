@@ -8,12 +8,15 @@
 #include "ActionRpgProject/Components/AttributeComponent.h"
 #include "ActionRpgProject/Components/InventoryComponent.h"
 #include "ActionRpgProject/Define/DefineVariables.h"
+#include "ActionRpgProject/Game/ActionGameInstance.h"
+#include "ActionRpgProject/Game/ActionPlayerState.h"
 #include "ActionRpgProject/HUD/BaseHUD.h"
 #include "ActionRpgProject/HUD/UIOverlay.h"
 #include "ActionRpgProject/HUD/UserHealthBar.h"
 #include "ActionRpgProject/Inputs/InputConfigDatas.h"
 #include "ActionRpgProject/Items/SwordWeapon.h"
 #include "ActionRpgProject/Items/Treasure.h"
+#include "ActionRpgProject/Subsystems/ActorManagerSubsystem.h"
 #include "Camera/CameraComponent.h"
 #include "Components/BoxComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -143,6 +146,15 @@ int32 AActionCharacter::PlayAttackMontage()
 	return AttackComboCount;
 }
 
+void AActionCharacter::SetItemInfos(const FAllItems& InAllItems)
+{
+	AActionPlayerState* ActionPlayerState = GetPlayerState<AActionPlayerState>();
+	if(IsValid(ActionPlayerState))
+	{
+		ActionPlayerState->SetAllItems(InAllItems);
+	}
+}
+
 void AActionCharacter::EquipWeapon(ASwordWeapon* OverlappingSword)
 {
 	OverlappingSword->Equip(GetMesh(), GRightHandSocket, this, this);
@@ -195,6 +207,15 @@ void AActionCharacter::BeginPlay()
 
 	Tags.Add(GTag_Player);
 
+	AActionPlayerState* ActionPlayerState = GetPlayerState<AActionPlayerState>();
+	if(IsValid(ActionPlayerState))
+	{
+		if(!ActionPlayerState->OnLoadItemDataDelegate.IsAlreadyBound(this, &AActionCharacter::OnLoadInventoryItems))
+		{
+			ActionPlayerState->OnLoadItemDataDelegate.AddDynamic(this, &AActionCharacter::OnLoadInventoryItems);
+		}
+	}
+
 	InitializeOverlay();
 }
 
@@ -206,6 +227,16 @@ void AActionCharacter::Tick(float DeltaSeconds)
 	{
 		AttributeComponent->RestoreStamina(DeltaSeconds);
 		UIOverlay->SetStaminaPercent(AttributeComponent->GetStaminaPercent());
+	}
+
+	UActionGameInstance* ActionGameInstance = Cast<UActionGameInstance>(GetGameInstance());
+	if(IsValid(ActionGameInstance))
+	{
+		UActorManagerSubsystem* ActorManagerSubsystem = ActionGameInstance->GetSubsystem<UActorManagerSubsystem>();
+		if(IsValid(ActionGameInstance))
+		{
+			ActorManagerSubsystem->DrawNearIconAroundPlayer();
+		}
 	}
 }
 
@@ -403,6 +434,12 @@ void AActionCharacter::FinishAttack(UAnimMontage* InAnimMontage, bool bInterrupt
 	bIsPressedAttack = false;
 }
 
+void AActionCharacter::OnLoadInventoryItems(const FAllItems& InAllItems)
+{
+	AllItems = InAllItems;
+	OnUpdateInventory();
+}
+
 bool AActionCharacter::CheckCanNextCombo()
 {
 	if(AttackComboCount < AttackMontageSections.Num() && bIsPressedAttack)
@@ -418,6 +455,12 @@ bool AActionCharacter::CheckCanNextCombo()
 	}
 
 	return false;
+}
+
+//단순히 블루프린트에서 이벤트 통지용 함수
+void OnUpdateInventory()
+{
+	
 }
 
 

@@ -27,10 +27,14 @@ public:
 
 	EEnemyState GetEnemyState() const { return EnemyState; }
 
+	void ShowPivot(bool bShow);
+
 protected:
 	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
 private:
+	void InitializeSubsystemData();
+	
 	void InitializeAnimMontageEvent();
 
 	void Attack() override;
@@ -43,6 +47,8 @@ private:
 	void ShowHPbar(bool bShow);
 
 	void SpawnDefaultWeapon();
+
+	void RemoveFromActorManagerSubsystem();
 
 protected:
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category="Combat", meta = (AllowPrivateAccess = "true"))
@@ -64,6 +70,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, meta=(AllowPrivateAccess))
 	TObjectPtr<class UHealthBarComponent> HealthBarWidget;
 
+	UPROPERTY(VisibleAnywhere, meta=(AllowPrivateAccess))
+	TObjectPtr<class UWidgetComponent> IconWidget;
+	
 private:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<class ASwordWeapon> WeaponClass;
