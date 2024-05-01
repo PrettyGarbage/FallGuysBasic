@@ -55,4 +55,10 @@ static FName GEndPatrolPositionKey = "EndPatrolPosition";
 static FName GTargetActorKey = "TargetActor";
 static FName GIsAliveKey = "IsAlive";
 
-#pragma endregion 
+#pragma endregion
+
+#pragma region Folder Paths
+
+static FString GBackgroundMusicPath = "Assets/Audio/BGM";
+
+#pragma endregion

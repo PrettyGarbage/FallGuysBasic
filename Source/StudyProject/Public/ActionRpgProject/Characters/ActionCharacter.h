@@ -20,7 +20,7 @@ class STUDYPROJECT_API AActionCharacter : public ABaseCharacter, public IPickUpI
 public:
 	// Sets default values for this character's properties
 	AActionCharacter();
-
+	
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
@@ -72,6 +72,8 @@ private:
 	virtual void Jump() override;
 
 	void Inventory(const FInputActionValue& InValue);
+
+	void LookClosetEnemy(const FInputActionValue& InputActionValue);
 
 	void Dodge();
 

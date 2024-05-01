@@ -5,6 +5,7 @@
 
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "ActionRpgProject/Characters/Enemy/ActionAICharacter.h"
 #include "ActionRpgProject/Components/AttributeComponent.h"
 #include "ActionRpgProject/Components/InventoryComponent.h"
 #include "ActionRpgProject/Define/DefineVariables.h"
@@ -21,6 +22,7 @@
 #include "Components/BoxComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 
@@ -68,6 +70,7 @@ void AActionCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		EnhancedInputComponent->BindAction(InputConfigData->EquipAction, ETriggerEvent::Started, this, &AActionCharacter::Equip);
 		EnhancedInputComponent->BindAction(InputConfigData->AttackAction, ETriggerEvent::Started, this, &AActionCharacter::Attack);
 		EnhancedInputComponent->BindAction(InputConfigData->InventoryAction, ETriggerEvent::Started, this, &AActionCharacter::Inventory);
+		EnhancedInputComponent->BindAction(InputConfigData->LookClosetEnemyAction, ETriggerEvent::Started, this, &AActionCharacter::LookClosetEnemy);
 	}
 }
 
@@ -228,16 +231,6 @@ void AActionCharacter::Tick(float DeltaSeconds)
 		AttributeComponent->RestoreStamina(DeltaSeconds);
 		UIOverlay->SetStaminaPercent(AttributeComponent->GetStaminaPercent());
 	}
-
-	UActionGameInstance* ActionGameInstance = Cast<UActionGameInstance>(GetGameInstance());
-	if(IsValid(ActionGameInstance))
-	{
-		UActorManagerSubsystem* ActorManagerSubsystem = ActionGameInstance->GetSubsystem<UActorManagerSubsystem>();
-		if(IsValid(ActionGameInstance))
-		{
-			ActorManagerSubsystem->DrawNearIconAroundPlayer();
-		}
-	}
 }
 
 void AActionCharacter::Move(const FInputActionValue& InValue)
@@ -320,6 +313,26 @@ void AActionCharacter::Inventory(const FInputActionValue& InValue)
 	if(!IsValid(InventoryComponent)) return;
 
 	InventoryComponent->ActiveInventoryUI();
+}
+
+void AActionCharacter::LookClosetEnemy(const FInputActionValue& InputActionValue)
+{
+	UActionGameInstance* ActionGameInstance = GetGameInstance<UActionGameInstance>();
+	if(IsValid(ActionGameInstance))
+	{
+		UActorManagerSubsystem* ActorManagerSubsystem = ActionGameInstance->GetSubsystem<UActorManagerSubsystem>();
+		if(IsValid(ActorManagerSubsystem))
+		{
+			TWeakObjectPtr<AActionAICharacter> ClosetEnemy = ActorManagerSubsystem->GetClosestEnemy(GetActorLocation());
+			if(ClosetEnemy.IsValid())
+			{
+				FVector LookAtDirection = ClosetEnemy->GetActorLocation() - GetActorLocation();
+				LookAtDirection.Z = 0.f;
+				FRotator LookAtRotation = UKismetMathLibrary::MakeRotFromX(LookAtDirection);
+				SetActorRotation(LookAtRotation);
+			}
+		}
+	}
 }
 
 void AActionCharacter::Dodge()

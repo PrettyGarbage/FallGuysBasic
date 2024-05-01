@@ -23,6 +23,8 @@ void UActorManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 			WorldEnemies.Add(Cast<AActionAICharacter>(Actor));
 		}
 	}
+
+	GetWorld()->GetTimerManager().SetTimer(SearchHandle, this, &UActorManagerSubsystem::DrawNearIconAroundPlayer, 0.5f, true);
 }
 
 void UActorManagerSubsystem::DrawNearIconAroundPlayer()
@@ -78,7 +80,34 @@ void UActorManagerSubsystem::RemoveEnemy(AActionAICharacter* InEnemy)
 	}
 }
 
+TWeakObjectPtr<AActionAICharacter> UActorManagerSubsystem::GetClosestEnemy(const FVector& InLocation)
+{
+	TWeakObjectPtr<AActionAICharacter> ClosestEnemy;
+	float MinDistance = TNumericLimits<float>::Max();
+
+	for(TWeakObjectPtr<AActionAICharacter> Enemy : EnemiesInRange)
+	{
+		if(Enemy.IsValid())
+		{
+			float Distance = (Enemy->GetActorLocation() - InLocation).SizeSquared();
+			if(Distance < MinDistance)
+			{
+				MinDistance = Distance;
+				ClosestEnemy = Enemy;
+			}
+		}
+	}
+
+	return ClosestEnemy;
+}
+
+
 void UActorManagerSubsystem::ClearEnemies()
 {
 	WorldEnemies.Empty();
+}
+
+void UActorManagerSubsystem::ClearSearchTimer()
+{
+	GetWorld()->GetTimerManager().ClearTimer(SearchHandle);
 }

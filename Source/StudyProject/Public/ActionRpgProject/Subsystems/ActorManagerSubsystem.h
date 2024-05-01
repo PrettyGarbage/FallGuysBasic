@@ -23,7 +23,11 @@ public:
 
 	void RemoveEnemy(class AActionAICharacter* InEnemy);
 
+	TWeakObjectPtr<class AActionAICharacter> GetClosestEnemy(const FVector& InLocation);
+
 	void ClearEnemies();
+
+	void ClearSearchTimer();
 
 private:
 	//레벨에 로드된 모든 적을 저장하는 배열
@@ -34,5 +38,8 @@ private:
 
 	UPROPERTY(EditAnywhere, Category="UI", Meta=(AllowPrivateAccess))
 	float SearchDistance = 500.f;
+
+	UPROPERTY()
+	FTimerHandle SearchHandle;
 	
 };
