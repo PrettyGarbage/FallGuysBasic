@@ -5,7 +5,6 @@
 
 #include "ActionRpgProject/Characters/ActionCharacter.h"
 #include "ActionRpgProject/Characters/Enemy/ActionAICharacter.h"
-#include "ActionRpgProject/Game/ActionGameInstance.h"
 #include "Kismet/GameplayStatics.h"
 
 void UActorManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
@@ -129,7 +128,6 @@ void UActorManagerSubsystem::LoadJsonData()
 			float HP = EnemyObject->GetNumberField("HP");
 
 			EnemyTableData.Add(MakeShared<FEnemyTableRow>(Name, HP));
-			UKismetSystemLibrary::PrintString(GetWorld(), FString::Printf(TEXT("Name : %s, HP : %f"), *Name, HP));
 		}
 	}
 }
