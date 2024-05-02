@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ActionRpgProject/Structs/SlotStruct.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "ActorManagerSubsystem.generated.h"
 
@@ -29,6 +30,17 @@ public:
 
 	void ClearSearchTimer();
 
+	void LoadJsonData();
+
+	FEnemyTableRow GetEnemyData(const FString& InName);
+
+public:
+	//JSON 데이터가 넘어온다고 가정했을 때의 더미 데이터
+	const FString JsonData = "{ \"Enemies\" : [ { \"Name\" : \"Paladin\", \"HP\" : 100 }, { \"Name\" : \"Kraken\", \"HP\" : 1000 } ] }" ; 
+
+	TSharedPtr<FJsonObject> EnemyJsonObject;
+	TSharedRef<TJsonReader<>> EnemyJsonReader = TJsonReaderFactory<>::Create(JsonData);
+	
 private:
 	//레벨에 로드된 모든 적을 저장하는 배열
 	TArray<TWeakObjectPtr<class AActionAICharacter>> WorldEnemies;
@@ -41,5 +53,6 @@ private:
 
 	UPROPERTY()
 	FTimerHandle SearchHandle;
-	
+
+	TArray<TSharedRef<FEnemyTableRow>> EnemyTableData;
 };

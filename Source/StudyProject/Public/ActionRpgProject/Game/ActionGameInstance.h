@@ -3,9 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ActionRpgProject/Structs/SlotStruct.h"
 #include "ActionRpgProject/Subsystems/ActorManagerSubsystem.h"
 
 #include "Engine/GameInstance.h"
+#include "Engine/StreamableManager.h"
 #include "ActionGameInstance.generated.h"
 
 /**
@@ -18,10 +20,5 @@ class STUDYPROJECT_API UActionGameInstance : public UGameInstance
 
 public:
 	virtual void Init() override;
-	
-	UActorManagerSubsystem* GetActorManagerSubsystem() const { return ActorManagerSubsystem; }
 
-private:
-	UPROPERTY()
-	UActorManagerSubsystem* ActorManagerSubsystem;
 };

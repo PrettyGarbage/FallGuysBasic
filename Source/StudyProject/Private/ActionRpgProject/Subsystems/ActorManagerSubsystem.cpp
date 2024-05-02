@@ -5,6 +5,7 @@
 
 #include "ActionRpgProject/Characters/ActionCharacter.h"
 #include "ActionRpgProject/Characters/Enemy/ActionAICharacter.h"
+#include "ActionRpgProject/Game/ActionGameInstance.h"
 #include "Kismet/GameplayStatics.h"
 
 void UActorManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
@@ -24,8 +25,12 @@ void UActorManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 		}
 	}
 
+	LoadJsonData();
+
 	GetWorld()->GetTimerManager().SetTimer(SearchHandle, this, &UActorManagerSubsystem::DrawNearIconAroundPlayer, 0.5f, true);
 }
+
+
 
 void UActorManagerSubsystem::DrawNearIconAroundPlayer()
 {
@@ -110,4 +115,35 @@ void UActorManagerSubsystem::ClearEnemies()
 void UActorManagerSubsystem::ClearSearchTimer()
 {
 	GetWorld()->GetTimerManager().ClearTimer(SearchHandle);
+}
+
+void UActorManagerSubsystem::LoadJsonData()
+{
+	if(FJsonSerializer::Deserialize(EnemyJsonReader, EnemyJsonObject))
+	{
+		TArray<TSharedPtr<FJsonValue>> Enemies = EnemyJsonObject->GetArrayField("Enemies");
+		for(const TSharedPtr<FJsonValue>& Enemy : Enemies)
+		{
+			TSharedPtr<FJsonObject> EnemyObject = Enemy->AsObject();
+			FString Name = EnemyObject->GetStringField("Name");
+			float HP = EnemyObject->GetNumberField("HP");
+
+			EnemyTableData.Add(MakeShared<FEnemyTableRow>(Name, HP));
+			UKismetSystemLibrary::PrintString(GetWorld(), FString::Printf(TEXT("Name : %s, HP : %f"), *Name, HP));
+		}
+	}
+}
+
+FEnemyTableRow UActorManagerSubsystem::GetEnemyData(const FString& InName)
+{
+	//EnemyTableData에서 InName과 일치하는 데이터를 찾아서 반환
+	for(const TSharedRef<FEnemyTableRow>& EnemyData : EnemyTableData)
+	{
+		if(EnemyData->Name.Equals(InName))
+		{
+			return *EnemyData;
+		}
+	}
+
+	return FEnemyTableRow();
 }

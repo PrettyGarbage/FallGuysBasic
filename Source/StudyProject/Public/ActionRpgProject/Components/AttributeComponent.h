@@ -32,6 +32,7 @@ public:
 	void UseStamina(float InStamina);
 	void RestoreStamina(float InDeltaTime);
 	
+	FORCEINLINE void SetHealth(float InHealth) { Health = InHealth; MaxHealth = InHealth; }
 	FORCEINLINE void SetLevel(int32 InLevel) { Level = InLevel; }
 	FORCEINLINE void AddEXP(float InEXP) { EXP += InEXP; }
 	FORCEINLINE int32 GetGold() const { return Gold; }

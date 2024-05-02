@@ -53,3 +53,24 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<FInventorySlot> Eatables;
 };
+
+USTRUCT(Atomic, BlueprintType)
+struct FEnemyTableRow : public FTableRowBase
+{
+	GENERATED_BODY()
+public:
+	FEnemyTableRow()
+	{
+		
+	}
+	FEnemyTableRow(FString InName, float InMaxHP)
+	{
+		Name = InName;
+		MaxHP = InMaxHP;
+	}
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FString Name;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float MaxHP;
+};

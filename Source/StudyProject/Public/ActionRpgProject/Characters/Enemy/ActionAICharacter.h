@@ -17,6 +17,8 @@ public:
 
 	virtual void BeginPlay() override;
 
+	void InitEnemyStatData();
+
 	bool IsNowAttacking() const { return bIsAttacking; }
 
 	bool IsHitReact() const { return bHitReact; }
@@ -51,6 +53,9 @@ private:
 	void RemoveFromActorManagerSubsystem();
 
 protected:
+	UPROPERTY(EditAnywhere, Category="Common", Meta=(AllowPrivateAccess))
+	FString EnemyName = "Enemy";
+	
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category="Combat", meta = (AllowPrivateAccess = "true"))
 	EEnemyState EnemyState = EEnemyState::EES_None;
 	

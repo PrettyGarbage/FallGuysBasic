@@ -11,7 +11,6 @@
 #include "ActionRpgProject/Items/SwordWeapon.h"
 #include "ActionRpgProject/Subsystems/ActorManagerSubsystem.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "Kismet/KismetSystemLibrary.h"
 
 // Sets default values
 AActionAICharacter::AActionAICharacter()
@@ -48,6 +47,20 @@ void AActionAICharacter::BeginPlay()
 	ShowHPbar(false);
 	ShowPivot(false);
 	SpawnDefaultWeapon();
+	InitEnemyStatData();
+}
+
+void AActionAICharacter::InitEnemyStatData()
+{
+	UActionGameInstance* ActionGameInstance = Cast<UActionGameInstance>(GetGameInstance());
+	if(!IsValid(ActionGameInstance)) return;
+
+	UActorManagerSubsystem* ActorManagerSubsystem = ActionGameInstance->GetSubsystem<UActorManagerSubsystem>();
+	if(IsValid(ActorManagerSubsystem) && IsValid(AttributeComponent))
+	{
+		FEnemyTableRow Data = ActorManagerSubsystem->GetEnemyData(EnemyName);
+		AttributeComponent->SetHealth(Data.MaxHP);
+	}
 }
 
 void AActionAICharacter::SetHitReactEndState()
