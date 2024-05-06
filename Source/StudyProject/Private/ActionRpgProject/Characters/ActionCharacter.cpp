@@ -15,6 +15,7 @@
 #include "ActionRpgProject/HUD/UIOverlay.h"
 #include "ActionRpgProject/HUD/UserHealthBar.h"
 #include "ActionRpgProject/Inputs/InputConfigDatas.h"
+#include "ActionRpgProject/Items/ProjectileBase.h"
 #include "ActionRpgProject/Items/SwordWeapon.h"
 #include "ActionRpgProject/Items/Treasure.h"
 #include "ActionRpgProject/Subsystems/ActorManagerSubsystem.h"
@@ -71,6 +72,7 @@ void AActionCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		EnhancedInputComponent->BindAction(InputConfigData->AttackAction, ETriggerEvent::Started, this, &AActionCharacter::Attack);
 		EnhancedInputComponent->BindAction(InputConfigData->InventoryAction, ETriggerEvent::Started, this, &AActionCharacter::Inventory);
 		EnhancedInputComponent->BindAction(InputConfigData->LookClosetEnemyAction, ETriggerEvent::Started, this, &AActionCharacter::LookClosetEnemy);
+		EnhancedInputComponent->BindAction(InputConfigData->ProjectileSkillAction, ETriggerEvent::Started, this, &AActionCharacter::SkillProjectile);
 	}
 }
 
@@ -330,6 +332,31 @@ void AActionCharacter::LookClosetEnemy(const FInputActionValue& InputActionValue
 				LookAtDirection.Z = 0.f;
 				FRotator LookAtRotation = UKismetMathLibrary::MakeRotFromX(LookAtDirection);
 				SetActorRotation(LookAtRotation);
+			}
+		}
+	}
+}
+
+void AActionCharacter::SkillProjectile(const FInputActionValue& InValue)
+{
+	UWorld* World = GetWorld();
+
+	if(IsValid(GetGameInstance()))
+	{
+		UActorManagerSubsystem* ActorManagerSubsystem = GetGameInstance()->GetSubsystem<UActorManagerSubsystem>();
+		if(IsValid(ActorManagerSubsystem))
+		{
+			TWeakObjectPtr<AActionAICharacter> ClosetEnemy = ActorManagerSubsystem->GetClosestEnemy(GetActorLocation());
+
+			FVector SpawnLocation(GetActorLocation().X, GetActorLocation().Y, GetActorLocation().Z + 50.f);
+			FActorSpawnParameters SpawnParameters;
+			SpawnParameters.Owner = this;
+			SpawnParameters.Instigator = this;
+			AProjectileBase* ProjectileBase = World->SpawnActor<AProjectileBase>(ProjectileClass, SpawnLocation, GetActorRotation(), SpawnParameters);
+			
+			if(ClosetEnemy != nullptr && IsValid(ClosetEnemy.Get()))
+			{
+				ProjectileBase->SetTargetActor(ClosetEnemy.Get());
 			}
 		}
 	}

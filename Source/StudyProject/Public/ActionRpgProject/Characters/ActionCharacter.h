@@ -75,6 +75,8 @@ private:
 
 	void LookClosetEnemy(const FInputActionValue& InputActionValue);
 
+	void SkillProjectile(const FInputActionValue& InValue);
+
 	void Dodge();
 
 	void PlayEquipMontage(FName SectionName);
@@ -135,6 +137,9 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<class UUIInventory> UIInventory;
+
+	UPROPERTY(EditAnywhere, Category = "Projectile", meta = (AllowPrivateAccess = true))
+	TSubclassOf<class AProjectileBase> ProjectileClass;
 
 	/* Combo */
 	UPROPERTY(VisibleAnywhere)

@@ -30,7 +30,7 @@ void UActorManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 }
 
 
-
+//TArray말고 TMap 활용하면 더 좋을듯 탐색속도가 더빠를테니... 정렬은 안되겠지만 일단 아이디어로 남겨두고 나중에 수정하자
 void UActorManagerSubsystem::DrawNearIconAroundPlayer()
 {
 	AActionCharacter* Player = Cast<AActionCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
