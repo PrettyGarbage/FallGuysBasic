@@ -39,6 +39,17 @@ void AEnergyProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherAc
 		UGameplayStatics::PlaySoundAtLocation(GetWorld(), SoundResource, HitLocation);
 	}
 
+	if(IsValid(OtherActor))
+	{
+		UGameplayStatics::ApplyDamage(
+			OtherActor,
+			Damage,
+			GetInstigator()->GetController(),
+			this,
+			UDamageType::StaticClass()
+			);
+	}
+
 	Super::OnHit(HitComponent, OtherActor, OtherComp, NormalImpulse, Hit);
 }
 

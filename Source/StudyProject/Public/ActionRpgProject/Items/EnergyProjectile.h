@@ -34,4 +34,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category="Effect", meta=(AllowPrivateAccess))
 	TObjectPtr<class USoundBase> SoundResource;
+
+	UPROPERTY(EditAnywhere, Category="Variables", Meta=(AllowPrivateAccess))
+	float Damage = 30.f;
 };
