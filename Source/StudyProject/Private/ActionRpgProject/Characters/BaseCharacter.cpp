@@ -111,7 +111,7 @@ void ABaseCharacter::Attack()
 void ABaseCharacter::Die()
 {
 	SetWeaponCollisionEnabled(ECollisionEnabled::NoCollision);
-	DisableCapsule();
+	//DisableCapsule();
 }
 
 void ABaseCharacter::PlayHitReactMontage(const FName& SectionName)
@@ -290,9 +290,14 @@ FVector ABaseCharacter::GetTranslationWarpTarget(ABaseCharacter* InTarget)
 	TargetToMe *= WarpTargetDistance;
 
 	//Debug
-	DrawDebugSphere(GetWorld(), CombatTargetLocation + TargetToMe, 10.f, 12, FColor::Red, false, 0.1f);
+	//DrawDebugSphere(GetWorld(), CombatTargetLocation + TargetToMe, 10.f, 12, FColor::Red, false, 0.1f);
 
 	return CombatTargetLocation + TargetToMe;
+}
+
+void ABaseCharacter::DestroyActor()
+{
+	Destroy();
 }
 
 

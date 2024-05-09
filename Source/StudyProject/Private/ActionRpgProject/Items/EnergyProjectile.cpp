@@ -3,6 +3,7 @@
 
 #include "ActionRpgProject/Items/EnergyProjectile.h"
 
+#include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystemComponent.h"
 
@@ -26,8 +27,16 @@ void AEnergyProjectile::BeginPlay()
 void AEnergyProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
 	FVector NormalImpulse, const FHitResult& Hit)
 {
-	const FVector HitLocation = Hit.Location;
+	MulticastSpawnEffect(HitComponent, OtherActor, OtherComp, NormalImpulse, Hit);
+	
+	Super::OnHit(HitComponent, OtherActor, OtherComp, NormalImpulse, Hit);
+}
 
+void AEnergyProjectile::MulticastSpawnEffect_Implementation(UPrimitiveComponent* HitComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	const FVector HitLocation = Hit.Location;
+	
 	if(IsValid(ParticleResource))
 	{
 		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ParticleResource, HitLocation, FRotator::ZeroRotator,
@@ -39,7 +48,7 @@ void AEnergyProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherAc
 		UGameplayStatics::PlaySoundAtLocation(GetWorld(), SoundResource, HitLocation);
 	}
 
-	if(IsValid(OtherActor))
+	if(IsValid(Cast<ACharacter>(OtherActor)))
 	{
 		UGameplayStatics::ApplyDamage(
 			OtherActor,
@@ -49,9 +58,8 @@ void AEnergyProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherAc
 			UDamageType::StaticClass()
 			);
 	}
-
-	Super::OnHit(HitComponent, OtherActor, OtherComp, NormalImpulse, Hit);
 }
+
 
 // Called every frame
 void AEnergyProjectile::Tick(float DeltaTime)

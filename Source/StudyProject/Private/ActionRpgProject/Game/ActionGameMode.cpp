@@ -5,6 +5,7 @@
 
 #include "ActionRpgProject/Characters/ActionCharacter.h"
 #include "ActionRpgProject/Game/ActionPlayerState.h"
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 AActionGameMode::AActionGameMode()
@@ -32,7 +33,4 @@ void AActionGameMode::Logout(AController* Exiting)
 	{
 		ActionPlayerState->SavePlayerState();
 	}
-	
-	UKismetSystemLibrary::PrintString(GetWorld(), TEXT("LogOut"));
-
 }

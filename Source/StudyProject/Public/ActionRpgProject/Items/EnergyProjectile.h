@@ -24,6 +24,10 @@ protected:
 
 	virtual void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
 		FVector NormalImpulse, const FHitResult& Hit) override;
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastSpawnEffect(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+	FVector NormalImpulse, const FHitResult& Hit);
 	
 protected:
 	UPROPERTY(EditAnywhere, Category="Components", Meta=(AllowPrivateAccess))
@@ -37,4 +41,6 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category="Variables", Meta=(AllowPrivateAccess))
 	float Damage = 30.f;
+
+	
 };

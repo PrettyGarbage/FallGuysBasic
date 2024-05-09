@@ -73,6 +73,7 @@ protected:
 	UFUNCTION()
 	FVector GetTranslationWarpTarget(ABaseCharacter* InTarget);
 
+	virtual void DestroyActor();
 	
 protected:
 	

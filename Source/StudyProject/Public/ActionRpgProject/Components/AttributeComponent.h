@@ -19,6 +19,8 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
 						   FActorComponentTickFunction* ThisTickFunction) override;
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 	UFUNCTION()
 	void ReceiveDamage(float InDamage);
 	float GetHealthPercent() const;
@@ -47,7 +49,7 @@ private:
 	UPROPERTY(EditAnywhere, Category="Actor Attributes")
 	int32 Level = 1;
 	
-	UPROPERTY(EditAnywhere, Category="Actor Attributes")
+	UPROPERTY(Replicated, EditAnywhere, Category="Actor Attributes")
 	float Health;
 
 	UPROPERTY(EditAnywhere, Category="Actor Attributes")

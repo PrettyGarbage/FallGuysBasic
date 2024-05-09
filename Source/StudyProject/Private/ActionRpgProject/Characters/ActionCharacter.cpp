@@ -25,10 +25,11 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Net/UnrealNetwork.h"
 
 
 // Sets default values
-AActionCharacter::AActionCharacter()
+AActionCharacter::AActionCharacter() : bIsEquipped(false), bIsAttacking(false)
 {
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -55,6 +56,8 @@ AActionCharacter::AActionCharacter()
 	GetMesh()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
 	GetMesh()->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
 	GetMesh()->SetGenerateOverlapEvents(true);
+
+	bReplicates = true;
 }
 
 // Called to bind functionality to input
@@ -81,6 +84,11 @@ float AActionCharacter::TakeDamage(float DamageAmount, FDamageEvent const& Damag
 {
 	Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 	HandleDamage(DamageAmount);
+
+	if(!IsAlive())
+	{
+		Die();
+	}
 
 	//아래로 대체 되어질 예정
 	SetHUDHealth();
@@ -124,6 +132,14 @@ void AActionCharacter::AddGold(ATreasure* InTreasure)
 		AttributeComponent->AddGold(InTreasure->GetGold());
 		UIOverlay->SetGold(AttributeComponent->GetGold());
 	}
+}
+
+void AActionCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	
+	DOREPLIFETIME(ThisClass, bIsEquipped);
+	DOREPLIFETIME(ThisClass, bIsAttacking);
 }
 
 void AActionCharacter::AddGold(int32 InGold)
@@ -197,6 +213,59 @@ void AActionCharacter::FinishEquipping()
 	SetActorEnableCollision(true);
 }
 
+bool AActionCharacter::CheckCanNextCombo()
+{
+	if(AttackComboCount < AttackMontageSections.Num() && bIsPressedAttack)
+	{
+		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+		if(IsValid(AnimInstance))
+		{
+			AnimInstance->Montage_JumpToSection(AttackMontageSections[AttackComboCount], AttackMontage);
+			AttackComboCount += 1;
+			bIsPressedAttack = false;
+		}
+		return true;
+	}
+
+	return false;
+}
+
+//단순히 블루프린트에서 이벤트 통지용 함수
+void OnUpdateInventory()
+{
+	
+}
+
+void AActionCharacter::SpawnProjectile_Server_Implementation()
+{
+	UWorld* World = GetWorld();
+
+	if(IsValid(GetGameInstance()))
+	{
+		UActorManagerSubsystem* ActorManagerSubsystem = GetGameInstance()->GetSubsystem<UActorManagerSubsystem>();
+		if(IsValid(ActorManagerSubsystem))
+		{
+			TWeakObjectPtr<AActionAICharacter> ClosetEnemy = ActorManagerSubsystem->GetClosestEnemy(GetActorLocation());
+
+			FVector SpawnLocation(GetActorLocation().X, GetActorLocation().Y, GetActorLocation().Z + 50.f);
+			FActorSpawnParameters SpawnParameters;
+			SpawnParameters.Owner = this;
+			SpawnParameters.Instigator = this;
+			AProjectileBase* ProjectileBase = World->SpawnActor<AProjectileBase>(ProjectileClass, SpawnLocation, GetActorRotation(), SpawnParameters);
+			
+			if(ClosetEnemy != nullptr && IsValid(ClosetEnemy.Get()))
+			{
+				ProjectileBase->SetTargetActor(ClosetEnemy.Get());
+			}
+		}
+	}
+}
+
+bool AActionCharacter::SpawnProjectile_Server_Validate()
+{
+	return true;
+}
+
 // Called when the game starts or when spawned
 void AActionCharacter::BeginPlay()
 {
@@ -265,7 +334,15 @@ void AActionCharacter::Equip(const FInputActionValue& InValue)
 	
 	if(IsValid(OverlappingSword))
 	{
-		EquipWeapon(OverlappingSword);
+		if(HasAuthority())
+		{
+			bIsEquipped = true;
+			SetEquipped();
+		}
+		else
+		{
+			Server_SetEquipped();
+		}
 	}
 	else
 	{
@@ -284,7 +361,21 @@ void AActionCharacter::Attack(const FInputActionValue& InValue)
 {
 	if(!IsAlive()) return;
 	Super::Attack(InValue);
+	
+	if(HasAuthority())
+	{
+		bIsAttacking = true;
+		Multicast_AttackCombo();
+	}
+	else
+	{
+		Server_RequestAttack();
+	}
+	AttackProcess();
+}
 
+void AActionCharacter::AttackProcess()
+{
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	if(!IsValid(AnimInstance)) return;
 	
@@ -295,10 +386,6 @@ void AActionCharacter::Attack(const FInputActionValue& InValue)
 		OnMontageEndedDelegate.BindUObject(this, &AActionCharacter::FinishAttack);
 		AnimInstance->Montage_SetEndDelegate(OnMontageEndedDelegate);
 		CurrentActionState = EActionState::EAS_Attacking;
-	}
-	else
-	{
-		bIsPressedAttack = true;
 	}
 }
 
@@ -339,27 +426,9 @@ void AActionCharacter::LookClosetEnemy(const FInputActionValue& InputActionValue
 
 void AActionCharacter::SkillProjectile(const FInputActionValue& InValue)
 {
-	UWorld* World = GetWorld();
+	if(!IsAlive()) return;
 
-	if(IsValid(GetGameInstance()))
-	{
-		UActorManagerSubsystem* ActorManagerSubsystem = GetGameInstance()->GetSubsystem<UActorManagerSubsystem>();
-		if(IsValid(ActorManagerSubsystem))
-		{
-			TWeakObjectPtr<AActionAICharacter> ClosetEnemy = ActorManagerSubsystem->GetClosestEnemy(GetActorLocation());
-
-			FVector SpawnLocation(GetActorLocation().X, GetActorLocation().Y, GetActorLocation().Z + 50.f);
-			FActorSpawnParameters SpawnParameters;
-			SpawnParameters.Owner = this;
-			SpawnParameters.Instigator = this;
-			AProjectileBase* ProjectileBase = World->SpawnActor<AProjectileBase>(ProjectileClass, SpawnLocation, GetActorRotation(), SpawnParameters);
-			
-			if(ClosetEnemy != nullptr && IsValid(ClosetEnemy.Get()))
-			{
-				ProjectileBase->SetTargetActor(ClosetEnemy.Get());
-			}
-		}
-	}
+	SpawnProjectile_Server();
 }
 
 void AActionCharacter::Dodge()
@@ -442,6 +511,7 @@ void AActionCharacter::InitializeOverlay()
 		if(IsValid(BaseHUD))
 		{
 			UIOverlay = BaseHUD->GetOverlayWidget();
+			
 			if(IsValid(UIOverlay) && IsValid(AttributeComponent))
 			{
 				UIOverlay->SetHealthPercent(AttributeComponent->GetHealthPercent());
@@ -472,6 +542,7 @@ void AActionCharacter::FinishAttack(UAnimMontage* InAnimMontage, bool bInterrupt
 {
 	AttackComboCount = 0;
 	bIsPressedAttack = false;
+	bIsAttacking = false;
 }
 
 void AActionCharacter::OnLoadInventoryItems(const FAllItems& InAllItems)
@@ -480,27 +551,60 @@ void AActionCharacter::OnLoadInventoryItems(const FAllItems& InAllItems)
 	OnUpdateInventory();
 }
 
-bool AActionCharacter::CheckCanNextCombo()
+void AActionCharacter::OnRep_Equipped()
 {
-	if(AttackComboCount < AttackMontageSections.Num() && bIsPressedAttack)
+	if(bIsEquipped)
 	{
-		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-		if(IsValid(AnimInstance))
-		{
-			AnimInstance->Montage_JumpToSection(AttackMontageSections[AttackComboCount], AttackMontage);
-			AttackComboCount += 1;
-			bIsPressedAttack = false;
-		}
-		return true;
+		SetEquipped();
 	}
-
-	return false;
 }
 
-//단순히 블루프린트에서 이벤트 통지용 함수
-void OnUpdateInventory()
+void AActionCharacter::OnRep_Attack()
 {
+	UKismetSystemLibrary::PrintString(GetWorld(), "OnRep_Attack");
+	if(bIsAttacking)
+	{
+		if(AttackComboCount == 0)
+		{
+			AttackProcess();
+		}
+		else
+		{
+			CheckCanNextCombo();
+		}
+	}
+}
+
+void AActionCharacter::Server_SetEquipped_Implementation()
+{
+	bIsEquipped = true;
 	
+	SetEquipped();
+}
+
+void AActionCharacter::Server_RequestAttack_Implementation()
+{
+	bIsAttacking = true;
+	bIsPressedAttack = true;
+	Multicast_AttackCombo();
+	AttackProcess();
+}
+
+void AActionCharacter::SetEquipped()
+{
+	if(IsValid(OverlappingItem))
+	{
+		ASwordWeapon* OverlappingSword = Cast<ASwordWeapon>(OverlappingItem);
+		if(IsValid(OverlappingSword))
+		{
+			EquipWeapon(OverlappingSword);
+		}
+	}
+}
+
+void AActionCharacter::Multicast_AttackCombo_Implementation()
+{
+	bIsPressedAttack = true;
 }
 
 

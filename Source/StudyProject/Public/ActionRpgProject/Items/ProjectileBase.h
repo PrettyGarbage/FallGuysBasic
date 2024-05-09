@@ -16,6 +16,8 @@ public:
 	AProjectileBase();
 
 	void SetTargetActor(ACharacter* InTargetActor);
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
 protected:
 	// Called when the game starts or when spawned
@@ -24,8 +26,13 @@ protected:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
 	UFUNCTION()
 	virtual void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+	UFUNCTION()
+	void OnRep_IsDestroyed();
 	
 private:
 	void SetCollisionEvent();
@@ -48,4 +55,6 @@ protected:
 	float Gravity;
 	UPROPERTY(VisibleAnywhere, Category="Variables", meta=(AllowPrivateAccess))
 	TObjectPtr<class ACharacter> TargetActor;
+	UPROPERTY(ReplicatedUsing=OnRep_IsDestroyed)
+	uint8 bIsHit : 1;
 };

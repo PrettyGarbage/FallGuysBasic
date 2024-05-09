@@ -27,6 +27,7 @@ public:
 	virtual void GetHit_Implementation(const FVector& ImpactPoint, AActor* Hitter) override;
 	virtual void SetOverlappingItem(AItemBase* InItem) override;
 	virtual void AddGold(ATreasure* InTreasure) override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UFUNCTION(BlueprintCallable)
 	void AddGold(int32 InGold);
@@ -53,6 +54,10 @@ public:
 	UFUNCTION(BlueprintImplementableEvent, Category="Blueprint Event")
 	void OnUpdateInventory();
 
+	/* Projectile */
+	UFUNCTION(Server, Reliable, WithValidation)
+	void SpawnProjectile_Server();
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -68,6 +73,8 @@ private:
 	void Equip(const FInputActionValue& InValue);
 
 	virtual void Attack(const FInputActionValue& InValue) override;
+
+	void AttackProcess();
 
 	virtual void Jump() override;
 
@@ -107,6 +114,24 @@ private:
 	/* Delegate Event */
 	UFUNCTION()
 	void OnLoadInventoryItems(const FAllItems& InAllItems);
+
+	/* Replicate */
+	UFUNCTION()
+	void OnRep_Equipped();
+
+	UFUNCTION()
+	void OnRep_Attack();
+
+	UFUNCTION(Server, Reliable)
+	void Server_SetEquipped();
+
+	UFUNCTION(Server, Reliable)
+	void Server_RequestAttack();
+
+	void SetEquipped();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_AttackCombo();
 	
 private:
 	ECharacterState CurrentState = ECharacterState::ECS_UnEquipped;
@@ -142,12 +167,19 @@ private:
 	TSubclassOf<class AProjectileBase> ProjectileClass;
 
 	/* Combo */
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, meta=(AllowPrivateAccess))
 	int32 AttackComboCount = 0;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Replicate", meta=(AllowPrivateAccess))
 	uint8 bIsPressedAttack : 1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item", meta = (AllowPrivateAccess = true))
 	FAllItems AllItems;
+
+	/* Replicate */
+	UPROPERTY(ReplicatedUsing=OnRep_Equipped, Replicated, VisibleAnywhere, BlueprintReadOnly, Category="Replicate", Meta=(AllowPrivateAccess))
+	uint8 bIsEquipped : 1;
+
+	UPROPERTY(ReplicatedUsing=OnRep_Attack, Replicated, VisibleAnywhere, BlueprintReadOnly, Category="Replicate", meta=(AllowPrivateAccess))
+	uint8 bIsAttacking : 1;
 };

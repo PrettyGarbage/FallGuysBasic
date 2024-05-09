@@ -3,6 +3,9 @@
 
 #include "ActionRpgProject/Components/AttributeComponent.h"
 
+#include "Kismet/KismetSystemLibrary.h"
+#include "Net/UnrealNetwork.h"
+
 
 // Sets default values for this component's properties
 UAttributeComponent::UAttributeComponent()
@@ -90,5 +93,12 @@ void UAttributeComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	// ...
+}
+
+void UAttributeComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ThisClass, Health);
 }
 

@@ -11,6 +11,7 @@
 #include "ActionRpgProject/Items/SwordWeapon.h"
 #include "ActionRpgProject/Subsystems/ActorManagerSubsystem.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 // Sets default values
 AActionAICharacter::AActionAICharacter()
@@ -90,7 +91,7 @@ float AActionAICharacter::TakeDamage(float DamageAmount, FDamageEvent const& Dam
 
 	bHitReact = true;
 	bIsAttacking = false;
-	
+
 	ShowHPbar(true);
 	HandleDamage(DamageAmount);
 
