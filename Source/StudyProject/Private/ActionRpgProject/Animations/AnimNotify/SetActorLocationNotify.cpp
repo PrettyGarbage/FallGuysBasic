@@ -20,7 +20,6 @@ void USetActorLocationNotify::Notify(USkeletalMeshComponent* MeshComp, UAnimSequ
 			//BindCharacter의 위치에서 캐릭터가 바라보는 방향으로 MeshComp의 RootBoneTranslation만큼 떨어진 위치를 구해서 변수에 할당한다.
 			FVector RootBoneLocation = BindCharacter->GetActorLocation() + BindCharacter->GetActorForwardVector() * MeshComp->RootBoneTranslation.Y;
 			//루트본 오프셋을 초기화
-			MeshComp->RootBoneTranslation = FVector::ZeroVector;
 			BindCharacter->SetActorLocation(RootBoneLocation);
 		}
 	}

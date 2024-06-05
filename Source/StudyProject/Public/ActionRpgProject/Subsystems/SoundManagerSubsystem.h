@@ -17,6 +17,8 @@ class STUDYPROJECT_API USoundManagerSubsystem : public UGameInstanceSubsystem
 public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
+	virtual void BeginDestroy() override;
+
 	TStrongObjectPtr<class USoundWave> GetBackgroundMusic();
 
 private:

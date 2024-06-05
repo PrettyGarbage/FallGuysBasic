@@ -49,7 +49,7 @@ private:
 	TArray<TWeakObjectPtr<AActionAICharacter>> EnemiesInRange;
 
 	UPROPERTY(EditAnywhere, Category="UI", Meta=(AllowPrivateAccess))
-	float SearchDistance = 500.f;
+	float SearchDistance = 1000.f;
 
 	UPROPERTY()
 	FTimerHandle SearchHandle;

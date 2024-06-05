@@ -13,6 +13,14 @@ void USoundManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	LoadBackgroundMusicFromPath();
 }
 
+void USoundManagerSubsystem::BeginDestroy()
+{
+	Super::BeginDestroy();
+
+	//backgroundMusics 초기화
+	BackgroundMusics.Empty();
+}
+
 TStrongObjectPtr<USoundWave> USoundManagerSubsystem::GetBackgroundMusic()
 {
 	if(BackgroundMusics.Num() > 0)

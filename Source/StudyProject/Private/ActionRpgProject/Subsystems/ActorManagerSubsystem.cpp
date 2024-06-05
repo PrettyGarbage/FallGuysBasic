@@ -41,7 +41,7 @@ void UActorManagerSubsystem::DrawNearIconAroundPlayer()
 		CollisionParams.AddIgnoredActor(Player);
 
 		TArray<FHitResult> HitResults;
-		float SearchRadius = FMath::Square(SearchDistance);
+		float SearchRadius = FMath::Square(SearchDistance * .5f);
 
 		FCollisionShape SphereCollisionShape = FCollisionShape::MakeSphere(SearchDistance);
 		if(GetWorld()->SweepMultiByChannel(HitResults, PlayerLocation, PlayerLocation, FQuat::Identity, ECollisionChannel::ECC_Pawn, SphereCollisionShape, CollisionParams))
@@ -105,6 +105,47 @@ TWeakObjectPtr<AActionAICharacter> UActorManagerSubsystem::GetClosestEnemy(const
 	return ClosestEnemy;
 }
 
+//분할 탐색 알고리즘을 적용해서 가장 가까운 적을 뽑아내기
+TWeakObjectPtr<AActionAICharacter> FindClosestEnemyRecursively(const FVector& InLocation, const TArray<TWeakObjectPtr<AActionAICharacter>>& Enemies, int Start, int End)
+{
+	if (Start > End) {
+		return nullptr;
+	}
+	
+	int Mid = (Start + End) / 2;
+	
+	float DistanceToMid = (Enemies[Mid]->GetActorLocation() - InLocation).SizeSquared();
+	
+	TWeakObjectPtr<AActionAICharacter> LeftClosest = FindClosestEnemyRecursively(InLocation, Enemies, Start, Mid - 1);
+	TWeakObjectPtr<AActionAICharacter> RightClosest = FindClosestEnemyRecursively(InLocation, Enemies, Mid + 1, End);
+	
+	TWeakObjectPtr<AActionAICharacter> ClosestEnemy = nullptr;
+	float MinDistance = TNumericLimits<float>::Max();
+	if (LeftClosest.IsValid()) {
+		float LeftDistance = (LeftClosest->GetActorLocation() - InLocation).SizeSquared();
+		if (LeftDistance < MinDistance) {
+			MinDistance = LeftDistance;
+			ClosestEnemy = LeftClosest;
+		}
+	}
+	if (RightClosest.IsValid()) {
+		float RightDistance = (RightClosest->GetActorLocation() - InLocation).SizeSquared();
+		if (RightDistance < MinDistance) {
+			ClosestEnemy = RightClosest;
+		}
+	}
+	
+	if (DistanceToMid < MinDistance) {
+		ClosestEnemy = Enemies[Mid];
+	}
+
+	return ClosestEnemy;
+}
+
+TWeakObjectPtr<AActionAICharacter> FindClosestEnemy(const FVector& InLocation, const TArray<TWeakObjectPtr<AActionAICharacter>>& Enemies)
+{
+	return FindClosestEnemyRecursively(InLocation, Enemies, 0, Enemies.Num() - 1);
+}
 
 void UActorManagerSubsystem::ClearEnemies()
 {
